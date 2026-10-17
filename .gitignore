@@ -1,3 +1,6 @@
 # Local auth files
 .htaccess
 .htpasswd
+
+# Local Claude config
+.claude/
