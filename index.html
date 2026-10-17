@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quarterly roadmap</title>
+<style>
+  :root {
+    color-scheme: light;
+    --color-bg: #fdfbf7;
+    --color-text: #1a1a1a;
+    --color-muted: #6b6b6b;
+    --color-border: #e5e0da;
+    --card-bg: #f7f3ed;
+    --pill-bg: #f4efe9;
+    --pill-active-bg: #c08a5c;
+    --pill-active-text: #1a1208;
+    --status-default: #8a8a8a;
+    /* quarterly gradient: dark brown (Q1) to light tan (Q4) */
+    --grad-dark: #3e2a1e;
+    --grad-light: #d9b48f;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: -apple-system, "Segoe UI", Arial, sans-serif; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  header.top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; }
+  h1 { font-size: 26px; margin: 0; text-decoration: underline; text-underline-offset: 6px; }
+
+  /* Level 1 of the view navigation (Year | Quarter): the strongest control, dark fill when active */
+  .pill-toggle { display: inline-flex; background: var(--pill-bg); border-radius: 999px; padding: 4px; gap: 2px; }
+  .pill-toggle button {
+    border: none; background: transparent; font-size: 14px; padding: 8px 22px; border-radius: 999px;
+    cursor: pointer; color: var(--color-muted); font-family: inherit;
+  }
+  .pill-toggle button.active { background: var(--grad-dark); color: #fff; font-weight: 700; }
+
+  .disclaimer { font-size: 12px; color: var(--color-muted); margin: 0 0 12px; }
+
+  .howto {
+    background: var(--card-bg); border: 1px solid var(--color-border); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 16px; font-size: 13px;
+  }
+  .howto strong { font-size: 13px; }
+  .howto ol { margin: 6px 0 0; padding-left: 20px; }
+  .howto li { margin-bottom: 2px; }
+  .howto a { color: var(--pill-active-bg); font-weight: 600; }
+  .howto a.unset { color: #a13327; pointer-events: none; font-weight: 400; }
+
+  @media print { .howto { display: none !important; } }
+
+  #dropzone {
+    border: 3px dashed #b9afa0; border-radius: 6px; padding: 26px; text-align: center;
+    color: var(--color-muted); font-size: 14px; cursor: pointer; margin-bottom: 14px;
+  }
+  #dropzone.dragover { border-color: var(--pill-active-bg); color: var(--pill-active-bg); }
+  #fileInput { display: none; }
+  #fileInfo { font-size: 12px; color: var(--color-muted); margin: -6px 0 14px; }
+
+  .error {
+    background: #fdecea; color: #a13327; border: 1px solid #f3c6c1; border-radius: 8px;
+    padding: 12px 16px; font-size: 13px; margin-bottom: 16px; display: none;
+  }
+  .error.visible { display: block; }
+
+  /* Two clearly labelled zones: FILTERS (which topics) and VIEW (how/when they are displayed) */
+  .panel { align-items: center; gap: 14px 22px; flex-wrap: wrap; padding: 12px 18px; border: 1px solid var(--color-border); border-radius: 14px; margin-bottom: 12px; }
+  .panel-title { flex: 0 0 150px; }
+  .panel-title .pt-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text); }
+  .panel-title .pt-name svg { width: 16px; height: 16px; stroke: var(--pill-active-bg); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .panel-title .pt-hint { font-size: 11.5px; color: var(--color-muted); margin-top: 2px; }
+  #toolbar { display: none; background: #fff; }
+  #toolbar.visible { display: flex; }
+  .nav-group { display: inline-flex; align-items: center; gap: 10px; }
+  .nav-label { font-size: 12.5px; color: var(--color-muted); }
+  #filterRow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 14px; }
+  .search-input {
+    font-size: 14px; height: 42px; padding: 0 14px 0 38px; width: 260px; border: 1px solid var(--color-border); border-radius: 10px;
+    background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b6b6b' stroke-width='2.2' stroke-linecap='round'><circle cx='11' cy='11' r='7'/><path d='M20 20l-3.5-3.5'/></svg>") no-repeat 13px center;
+    color: var(--color-text); font-family: inherit;
+  }
+  .search-input:focus { outline: none; border-color: var(--pill-active-bg); box-shadow: 0 0 0 3px rgba(192,138,92,.18); }
+  .multiselect { position: relative; }
+  /* Filters are real buttons (not underlined text); a narrowed filter is tinted so active filtering is visible at a glance */
+  .ms-button {
+    display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px;
+    font-size: 14px; border: 1px solid var(--color-border); border-radius: 10px;
+    background: #fff; color: var(--color-text); font-family: inherit; cursor: pointer;
+  }
+  .ms-button:hover { border-color: var(--pill-active-bg); }
+  .multiselect.narrowed .ms-button { border-color: var(--pill-active-bg); background: #f6ece2; font-weight: 600; }
+  .ms-caret { font-size: 10px; color: var(--color-muted); margin-left: 2px; }
+  .ms-panel {
+    display: none; position: absolute; left: 0; top: calc(100% + 6px); background: #fff;
+    border: 1px solid var(--color-border); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.1);
+    padding: 10px; min-width: 240px; max-height: 320px; overflow-y: auto; z-index: 30;
+  }
+  .ms-panel.open { display: block; }
+  .ms-actions { display: flex; gap: 16px; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border); }
+  .ms-actions button { border: none; background: transparent; color: var(--pill-active-bg); font-size: 13px; font-weight: 600; cursor: pointer; padding: 0; font-family: inherit; }
+  .ms-option { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 6px 4px; cursor: pointer; white-space: nowrap; }
+  .ms-option input { margin: 0; width: 16px; height: 16px; accent-color: var(--pill-active-bg); }
+  .ms-option.unavailable { color: #b9b3aa; cursor: not-allowed; }
+  .nd-toggle { display: none; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text); cursor: pointer; }
+  .nd-toggle input { margin: 0; }
+
+  .export-wrap { position: relative; }
+  #exportBtn {
+    font-size: 14px; height: 42px; padding: 0 20px; border-radius: 10px; border: 1px solid var(--color-border);
+    background: var(--pill-bg); color: var(--color-text); cursor: pointer; font-family: inherit;
+  }
+  #exportBtn:hover { background: var(--pill-active-bg); color: #fff; }
+  .export-menu {
+    display: none; position: absolute; right: 0; top: calc(100% + 6px); background: #fff;
+    border: 1px solid var(--color-border); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.1);
+    min-width: 220px; padding: 6px; z-index: 20;
+  }
+  .export-menu.open { display: block; }
+  .export-menu button {
+    display: block; width: 100%; text-align: left; border: none; background: transparent;
+    font-size: 13px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: var(--color-text); font-family: inherit;
+  }
+  .export-menu button:hover { background: var(--card-bg); }
+  .export-menu .hint { font-size: 11px; color: var(--color-muted); padding: 2px 10px 6px; }
+
+  /* View navigation bar, directly above the board: level 1 (Year | Quarter) then level 2 (years, quarters) */
+  .pills-row { display: none; background: var(--card-bg); margin-bottom: 18px; }
+  .pills-row.visible { display: flex; }
+  .pills-row .export-wrap { margin-left: auto; }
+  .pills-row .pill-toggle, .pills-row .pill-group { background: #fff; }
+  .nav-sep { width: 1px; height: 26px; background: #ddd5ca; }
+  .pill-group { display: inline-flex; background: var(--pill-bg); border-radius: 999px; padding: 4px; gap: 2px; }
+  .pill-group button {
+    border: none; background: transparent; font-size: 13px; padding: 7px 16px; border-radius: 999px;
+    cursor: pointer; color: var(--color-muted); font-family: inherit;
+  }
+  .pill-group button.active { background: var(--pill-active-bg); color: #fff; font-weight: 700; }
+
+  #board { display: none; }
+  #board.visible { display: block; }
+
+  /* ---- Board: soft "digital" cards (Year = quarters, Quarter = months) ----
+     Same 3-column structure as before (Title / UAT start / Go Live),
+     just without heavy table borders. Items are grouped by status,
+     so the status is shown once per group, not once per item. */
+  .board-grid { display: grid; gap: 16px; }
+  .board-card { border: 1px solid var(--color-border); border-radius: 14px; overflow: clip; background: #fff; }
+  .card-sticky { position: sticky; top: 0; z-index: 5; }
+
+  .card-head { padding: 12px 16px 10px; min-height: 56px; position: relative; }
+  .card-head .label { font-size: 18px; font-weight: 700; display: block; }
+  .card-head .sub { font-size: 12px; opacity: .85; }
+
+  .col-labels { display: flex; font-size: 11px; color: var(--color-muted); background: var(--card-bg); padding: 7px 16px; }
+  .col-title { flex: 1 1 auto; }
+  .col-uat, .col-golive { flex: 0 0 86px; text-align: center; white-space: nowrap; }
+
+  .status-group .status-label { padding: 10px 16px 4px; }
+  .status-tag {
+    display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+    padding: 3px 10px; border-radius: 999px; line-height: 1.3; white-space: nowrap;
+    color: #4a4a4a; background: #e8e8e8;
+  }
+  .status-tag.st-gray   { color: #44474d; background: #e7e8ea; }
+  .status-tag.st-blue   { color: #1b3a78; background: #dce8fb; }
+  .status-tag.st-purple { color: #4b2a86; background: #eadffa; }
+  .status-tag.st-green  { color: #17562e; background: #d9f0df; }
+  .status-tag.st-other  { color: var(--color-muted); background: #fff; border: 1px solid var(--color-border); }
+
+  .item-line { display: flex; align-items: baseline; padding: 7px 16px; font-size: 12.5px; }
+  .status-group { padding-bottom: 8px; }
+  .status-group + .status-group { border-top: 1px solid var(--color-border); margin-top: 4px; padding-top: 6px; }
+  .item-line .col-title { display: flex; flex-direction: column; gap: 2px; }
+  .item-line .il-desc { font-size: 11px; color: var(--color-muted); }
+  .col-title a { color: inherit; text-decoration: underline; text-decoration-color: var(--color-border); }
+  .col-title a:hover { text-decoration-color: var(--pill-active-bg); }
+  .item-line .col-uat, .item-line .col-golive { color: var(--color-muted); }
+
+  .empty-row { padding: 14px 16px; font-size: 12px; color: var(--color-muted); font-style: italic; }
+
+
+  /* ---- Vertical printable (release-note style) ---- */
+  @media print {
+    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row { display: none !important; }
+    body { padding: 0; }
+    .wrap { max-width: none; padding: 0 10mm; }
+    .board-grid { break-inside: avoid; }
+    .board-card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Quarterly roadmap</h1>
+  </header>
+
+  <p class="disclaimer">Import your JIRA export (CSV). Processing is 100% local, in your browser — no data is ever sent anywhere.</p>
+
+  <div class="howto" id="howto">
+    <strong>How to get your data</strong>
+    <ol>
+      <li>Open the JIRA filter: <a id="jiraFilterLink" href="#" target="_blank" rel="noopener">View JIRA filter</a></li>
+      <li>In JIRA, click <strong>Export → Export CSV (current fields)</strong>.</li>
+      <li>Drag the downloaded file into the box below.</li>
+    </ol>
+  </div>
+
+  <div id="dropzone">
+    Drag and drop one or more CSV files here, or click to select them.
+    <input type="file" id="fileInput" accept=".csv" multiple>
+  </div>
+  <div id="fileInfo"></div>
+  <div class="error" id="errorBox"></div>
+
+  <div id="toolbar" class="panel">
+    <div class="panel-title">
+      <div class="pt-name"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Filters</div>
+      <div class="pt-hint">Choose which topics are shown</div>
+    </div>
+    <div id="filterRow">
+      <input type="search" id="searchInput" class="search-input" placeholder="Search a topic…" aria-label="Search a topic by title" autocomplete="off">
+      <div class="multiselect" id="fDomain"></div>
+      <div class="multiselect" id="fTeam"></div>
+      <div class="multiselect" id="fZone"></div>
+      <div class="multiselect" id="fPlatform"></div>
+      <div class="multiselect" id="fStatus"></div>
+    </div>
+  </div>
+
+  <div class="pills-row panel" id="pillsRow">
+    <div class="panel-title">
+      <div class="pt-name"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>View</div>
+      <div class="pt-hint">Choose the period displayed</div>
+    </div>
+    <div class="nav-group">
+      <span class="nav-label">Display by</span>
+      <div class="pill-toggle" id="viewToggle">
+        <button data-view="year" class="active">Year</button>
+        <button data-view="quarter">Quarter</button>
+      </div>
+    </div>
+    <span class="nav-sep"></span>
+    <label class="nd-toggle" id="ndToggle"><input type="checkbox" id="ndCheck"> Not detailed planned</label>
+    <div class="nav-group">
+      <span class="nav-label">Year</span>
+      <div class="pill-group" id="yearPills"></div>
+    </div>
+    <div class="nav-group" id="quarterGroup" style="display:none;">
+      <span class="nav-label">Quarter</span>
+      <div class="pill-group" id="quarterPills"></div>
+    </div>
+    <div class="export-wrap">
+      <button id="exportBtn">↓ Export ▾</button>
+      <div class="export-menu" id="exportMenu">
+        <div class="hint">Choose a format</div>
+        <button data-fmt="csv">Export CSV</button>
+        <button data-fmt="pptx">Export PowerPoint — Timeline (horizontal)</button>
+        <button data-fmt="docx">Export Word — Release note (vertical)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="board"></div>
+</div>
+
+<script>
+/*
+ * Quarterly roadmap — local prototype built from JIRA CSV exports.
+ * No external dependency, 100% client-side.
+ *
+ * Column mapping matches the "Digital Quarterly roadmap" JIRA filter export:
+ * one row per Epic, a compound "Tribe & Squad / Domain" field, a "PI"
+ * field (format AAAAQn) driving the Year/Quarter placement, and a
+ * 4-column "Impacted Zones" multi-value fallback.
+ */
+// Columns are read BY POSITION (A, B, C…), never by header text, because JIRA
+// exports localise the header names depending on each user's language.
+const COL = {
+  issueType: 0,   // A — only "Epic" rows are kept
+  key: 1,         // B — used to build the JIRA link
+  title: 3,       // D — Summary
+  tribeSquad: 4,  // E — split into Platform/Team/Domain, or "Zone - XXXX"
+  pi: 5,          // F — format AAAAQn -> Year/Quarter (drives placement)
+  status: 6,      // G
+  uat: 7,         // H — UAT start date
+  golive: 8,      // I — Go Live date (displayed only)
+};
+const IMPACTED_ZONES_FIRST_COL = 9; // J onwards (J-M: one column per selected zone)
+const MIN_COLUMNS = 9;              // A to I must exist
+const JIRA_BASE_URL = "https://vuitton.atlassian.net/browse/";
+
+// Team -> Domain grouping, from the "Tribe & Squad / Domain" field's right-hand side
+// (the "Squad - " prefix, if any, is stripped before matching against these lists)
+const PROFILE_ORDER_TEAMS = new Set([
+  "ATG China", "Checkout", "Order & Services", "Profile",
+  "Profile & Checkout", "Checkout Order", "Services",
+]);
+const DISCOVERY_TEAMS = new Set([
+  "Attract", "Consider", "Editorial Digital", "Explore", "Discovery",
+]);
+
+// ---- EDIT ME: paste your team's JIRA filter link between the quotes below ----
+const JIRA_FILTER_URL = "https://vuitton.atlassian.net/issues/?filter=80753";
+// Example: const JIRA_FILTER_URL = "https://yourcompany.atlassian.net/issues/?filter=12345";
+
+const jiraLink = document.getElementById("jiraFilterLink");
+if (JIRA_FILTER_URL) {
+  jiraLink.href = JIRA_FILTER_URL;
+} else {
+  jiraLink.textContent = "⚠️ Link not set yet — ask Romane for the JIRA filter URL";
+  jiraLink.classList.add("unset");
+  jiraLink.removeAttribute("href");
+}
+
+const MONTH_NAMES_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const QUARTER_MONTHS_EN = [["Jan","Feb","Mar"],["Apr","May","Jun"],["Jul","Aug","Sept"],["Oct","Nov","Dec"]];
+
+let allItems = [];
+let currentView = "year";   // "year" | "quarter"
+let currentYear = null;
+let currentQuarter = 0;     // 0-3
+let showNotDetailed = false; // Quarter view: show the "Not detailed planned" column
+
+// ---------------------------------------------------------------------
+// IMPORT / PARSING
+// ---------------------------------------------------------------------
+
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+const fileInfo = document.getElementById("fileInfo");
+const errorBox = document.getElementById("errorBox");
+
+dropzone.addEventListener("click", () => fileInput.click());
+dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+dropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropzone.classList.remove("dragover");
+  if (e.dataTransfer.files.length) handleFiles([...e.dataTransfer.files]);
+});
+fileInput.addEventListener("change", (e) => {
+  if (e.target.files.length) handleFiles([...e.target.files]);
+});
+
+function handleFiles(files) {
+  hideError();
+  Promise.all(files.map(readFileAsText)).then((contents) => {
+    try {
+      let combined = [];
+      contents.forEach((text, i) => {
+        const rows = parseCSV(text);
+        combined = combined.concat(mapRowsToItems(rows, files[i].name));
+      });
+      if (combined.length === 0) {
+        showError("No Epic rows found: column A (Issue Type) must contain \"Epic\". Check that you exported the right JIRA filter.");
+        return;
+      }
+      const byKey = new Map();
+      combined.forEach((item) => byKey.set(item.key, item));
+      const all = [...byKey.values()];
+      const noPI = all.filter((it) => it.year == null).length;
+      allItems = all.filter((it) => it.year != null);
+      if (allItems.length === 0) {
+        showError("No usable items found: the PI field (format 2026Q1) is missing or invalid on every row.");
+        return;
+      }
+
+      fileInfo.textContent = `${files.map((f) => f.name).join(", ")} — ${allItems.length} item(s) loaded${noPI ? ` — ${noPI} row(s) ignored (PI missing or invalid)` : ""}`;
+      initFiltersAndPills(allItems);
+      document.getElementById("toolbar").classList.add("visible");
+      document.getElementById("pillsRow").classList.add("visible");
+      render();
+    } catch (err) {
+      showError("Read error: " + err.message);
+    }
+  });
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsText(file, "UTF-8");
+  });
+}
+
+function showError(msg) { errorBox.textContent = msg; errorBox.classList.add("visible"); }
+function hideError() { errorBox.classList.remove("visible"); }
+
+function parseCSV(text) {
+  const clean = text.replace(/^﻿/, ""); // strip BOM some JIRA exports start with
+  const lines = clean.replace(/\r\n/g, "\n").split("\n").filter((l) => l.trim() !== "");
+  return lines.map(parseCSVLine);
+}
+function parseCSVLine(line) {
+  const result = []; let current = ""; let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } else { inQuotes = !inQuotes; }
+    } else if (char === "," && !inQuotes) { result.push(current); current = ""; }
+    else { current += char; }
+  }
+  result.push(current);
+  return result;
+}
+
+function mapRowsToItems(rows, fileName) {
+  // Row 0 is the header line: its text is ignored (it may be in any language).
+  if (!rows.length || rows[0].length < MIN_COLUMNS) {
+    throw new Error(`${fileName}: expected the JIRA export layout (at least columns A to I), found ${rows.length ? rows[0].length : 0} column(s).`);
+  }
+  const idx = COL;
+
+  const items = [];
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.length === 0) continue;
+
+    const issueType = (row[idx.issueType] || "").trim();
+    if (issueType.toLowerCase() !== "epic") continue; // only Epics are considered
+
+    const key = (row[idx.key] || "").trim();
+    if (!key) continue;
+
+    const parsed = parseTribeSquad(row[idx.tribeSquad]);
+    let domain = parsed.domain;
+    let zones = parsed.zone ? [parsed.zone] : [];
+    if (domain !== "Zone") {
+      // Impacted Zones (cols J-M) is only a fallback for tickets not already zone-typed via col E
+      zones = parseImpactedZones(row);
+    }
+
+    const { year, quarter } = parsePI(row[idx.pi]);
+
+    items.push({
+      key,
+      link: JIRA_BASE_URL + key,
+      title: (row[idx.title] || "").trim(),
+      status: (row[idx.status] || "").trim(),
+      uat: parseDate(row[idx.uat]),
+      golive: parseDate(row[idx.golive]),
+      year,       // from PI — drives Year/Quarter placement
+      quarter,    // 0-3, from PI
+      domain,
+      team: parsed.team,
+      zone: zones.join(", "), // display / CSV export
+      zones,                  // individual zones, used by the Zone filter
+      platform: parsed.platform,
+      shortDesc: "", // not provided by this export format
+    });
+  }
+  return items;
+}
+
+// "Tribe - Digital -> Squad - Consider" / "Tribe - LVAPP -> Squad - Discovery" / "Zone - AMER" / "Tribe - Digital -> Quality"
+function parseTribeSquad(raw) {
+  const val = (raw || "").trim();
+  if (!val) return { platform: "", team: "", domain: "Other", zone: "" };
+
+  if (val.startsWith("Zone - ")) {
+    return { platform: "", team: "", domain: "Zone", zone: val.slice("Zone - ".length).trim() };
+  }
+
+  const arrowIdx = val.indexOf("->");
+  if (arrowIdx === -1) {
+    // e.g. "Tribe - Digital" alone, no squad specified
+    return { platform: derivePlatform(val), team: "", domain: "Other", zone: "" };
+  }
+
+  const left = val.slice(0, arrowIdx).trim();
+  const right = val.slice(arrowIdx + 2).trim();
+  const platform = derivePlatform(left);
+  const team = right.startsWith("Squad - ") ? right.slice("Squad - ".length).trim() : right;
+
+  let domain = "Other";
+  if (PROFILE_ORDER_TEAMS.has(team)) domain = "Profile & Order";
+  else if (DISCOVERY_TEAMS.has(team)) domain = "Discovery";
+
+  return { platform, team, domain, zone: "" };
+}
+
+function derivePlatform(tribeLabel) {
+  if (tribeLabel === "Tribe - Digital") return ".com";
+  if (tribeLabel === "Tribe - LVAPP") return "App";
+  return tribeLabel.replace(/^Tribe - /, "").trim();
+}
+
+// "2026Q1" -> { year: 2026, quarter: 0 } (quarter is 0-based, Q1=0 .. Q4=3)
+function parsePI(raw) {
+  const m = /^(\d{4})Q([1-4])$/.exec((raw || "").trim());
+  if (!m) return { year: null, quarter: null };
+  return { year: parseInt(m[1], 10), quarter: parseInt(m[2], 10) - 1 };
+}
+
+// Cols J-M (one per selected zone, same header text) — read by position from J onwards.
+// Only used as a fallback (see mapRowsToItems).
+function parseImpactedZones(row) {
+  const values = [];
+  for (let i = IMPACTED_ZONES_FIRST_COL; i < row.length; i++) {
+    const v = (row[i] || "").trim();
+    if (v) values.push(v);
+  }
+  if (values.length === 0) return [];
+  if (values.some((v) => v.toLowerCase() === "all")) return ["All"];
+  return [...new Set(values)];
+}
+
+const MONTH_ABBR = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Sept:8, Oct:9, Nov:10, Dec:11 };
+
+function parseDate(str) {
+  if (!str) return null;
+  const s = str.trim();
+  if (!s) return null;
+
+  // JIRA export format: "11/Aug/25 12:00 AM" (dd/Mon/yy[yy] [hh:mm AM|PM])
+  const m = /^(\d{1,2})\/([A-Za-z]{3,4})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})\s*(AM|PM))?$/i.exec(s);
+  if (m) {
+    const day = parseInt(m[1], 10);
+    const monKey = m[2].charAt(0).toUpperCase() + m[2].slice(1).toLowerCase();
+    const mon = MONTH_ABBR[monKey];
+    if (mon !== undefined) {
+      let year = parseInt(m[3], 10);
+      if (year < 100) year += 2000;
+      let hour = m[4] ? parseInt(m[4], 10) : 0;
+      const minute = m[5] ? parseInt(m[5], 10) : 0;
+      if (m[6]) {
+        const ampm = m[6].toUpperCase();
+        if (ampm === "PM" && hour !== 12) hour += 12;
+        if (ampm === "AM" && hour === 12) hour = 0;
+      }
+      const d = new Date(year, mon, day, hour, minute);
+      return isNaN(d.getTime()) ? null : d;
+    }
+  }
+
+  // Fallback: let the browser try (covers ISO dates, "DD Month YYYY", etc.)
+  const d2 = new Date(s);
+  return isNaN(d2.getTime()) ? null : d2;
+}
+
+// ---------------------------------------------------------------------
+// COLORS — gradient dark (first month shown) → light (last month shown)
+// ---------------------------------------------------------------------
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function rgbToHex([r, g, b]) {
+  return "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+}
+function lerpColor(hexA, hexB, t) {
+  const a = hexToRgb(hexA), b = hexToRgb(hexB);
+  return rgbToHex(a.map((v, i) => v + (b[i] - v) * t));
+}
+const GRAD_DARK = "#3e2a1e", GRAD_LIGHT = "#d9b48f";
+
+function quarterColor(qIndex) { return lerpColor(GRAD_DARK, GRAD_LIGHT, qIndex / 3); }
+function monthColor(qIndex, mIndex) {
+  // full dark -> light gradient across the 3 months of the displayed quarter
+  return lerpColor(GRAD_DARK, GRAD_LIGHT, mIndex / 2);
+}
+
+// ---------------------------------------------------------------------
+// FILTERS + PILLS (year / quarter)
+// ---------------------------------------------------------------------
+
+const viewToggle = document.getElementById("viewToggle");
+viewToggle.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-view]");
+  if (!btn) return;
+  currentView = btn.dataset.view;
+  [...viewToggle.children].forEach((b) => b.classList.toggle("active", b === btn));
+  document.getElementById("quarterGroup").style.display = currentView === "quarter" ? "inline-flex" : "none";
+  document.getElementById("ndToggle").style.display = currentView === "quarter" ? "inline-flex" : "none";
+  render();
+});
+
+// ---- Multi-select checkbox filters (with Select all / Deselect all) ----
+const filterState = { domain: new Set(), team: new Set(), zone: new Set(), platform: new Set(), status: new Set() };
+// Total distinct values per field — lets us tell "column absent" (0, never filters)
+// apart from "user deselected every option" (filterState empty but total > 0, filters everything out).
+const filterTotal = { domain: 0, team: 0, zone: 0, platform: 0, status: 0 };
+
+function buildMultiSelect(key, label, values) {
+  const container = document.getElementById(`f${key.charAt(0).toUpperCase()}${key.slice(1)}`);
+  filterTotal[key] = values.length;
+  if (values.length === 0) { container.style.display = "none"; filterState[key] = new Set(); return; }
+  container.style.display = "";
+  filterState[key] = new Set(values); // default: everything selected = no filtering
+
+  container.innerHTML = `
+    <button type="button" class="ms-button"><span class="ms-label"></span><span class="ms-caret">▾</span></button>
+    <div class="ms-panel">
+      <div class="ms-actions">
+        <button type="button" data-action="all">Select all</button>
+        <button type="button" data-action="none">Deselect all</button>
+      </div>
+      ${values.map((v) => `
+        <label class="ms-option">
+          <input type="checkbox" value="${escapeHTML(v)}" checked>
+          <span>${escapeHTML(v)}</span>
+        </label>
+      `).join("")}
+    </div>
+  `;
+
+  const btn = container.querySelector(".ms-button");
+  const panel = container.querySelector(".ms-panel");
+  const updateLabel = () => {
+    const sel = filterState[key];
+    btn.querySelector(".ms-label").textContent = sel.size === values.length ? label : `${label} (${sel.size})`;
+    container.classList.toggle("narrowed", sel.size !== values.length);
+  };
+  updateLabel();
+
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.querySelectorAll(".ms-panel.open").forEach((p) => { if (p !== panel) p.classList.remove("open"); });
+    panel.classList.toggle("open");
+  });
+  panel.addEventListener("click", (e) => e.stopPropagation());
+  panel.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    cb.addEventListener("change", () => {
+      if (cb.checked) filterState[key].add(cb.value); else filterState[key].delete(cb.value);
+      updateLabel();
+      render();
+    });
+  });
+  panel.querySelector('[data-action="all"]').addEventListener("click", () => {
+    filterState[key] = new Set(values);
+    panel.querySelectorAll('input[type="checkbox"]').forEach((cb) => (cb.checked = true));
+    updateLabel();
+    render();
+  });
+  panel.querySelector('[data-action="none"]').addEventListener("click", () => {
+    filterState[key] = new Set();
+    panel.querySelectorAll('input[type="checkbox"]').forEach((cb) => (cb.checked = false));
+    updateLabel();
+    render();
+  });
+}
+document.addEventListener("click", () => {
+  document.querySelectorAll(".ms-panel.open").forEach((p) => p.classList.remove("open"));
+});
+
+document.getElementById("ndCheck").addEventListener("change", (e) => {
+  showNotDetailed = e.target.checked;
+  render();
+});
+
+// ---- Export menu ----
+const exportBtn = document.getElementById("exportBtn");
+const exportMenu = document.getElementById("exportMenu");
+exportBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  exportMenu.classList.toggle("open");
+});
+document.addEventListener("click", () => exportMenu.classList.remove("open"));
+exportMenu.addEventListener("click", (e) => e.stopPropagation());
+exportMenu.querySelectorAll("button[data-fmt]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    exportMenu.classList.remove("open");
+    const fmt = btn.dataset.fmt;
+    if (fmt === "csv") exportCSV();
+    else if (fmt === "pptx") exportPptx();
+    else if (fmt === "docx") exportDocx();
+  });
+});
+
+function exportCSV() {
+  const items = getFiltered().slice().sort((a, b) => {
+    if (!a.golive && !b.golive) return 0;
+    if (!a.golive) return 1;
+    if (!b.golive) return -1;
+    return a.golive - b.golive;
+  });
+  const headers = ["Title", "Status", "UAT start", "Go Live", "Short description", "Domain", "Team", "Zone", "Platform"];
+  const rows = items.map((it) => [
+    it.title, it.status,
+    it.uat ? fmtDateLong(it.uat) : "",
+    it.golive ? fmtDateLong(it.golive) : "",
+    it.shortDesc, it.domain, it.team, it.zone, it.platform,
+  ]);
+  const csvEscape = (v) => {
+    const s = (v ?? "").toString();
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = [headers, ...rows].map((r) => r.map(csvEscape).join(",")).join("\r\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "quarterly-roadmap.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------------------------------------------------------------------
+// EXPORTS — PowerPoint timeline (.pptx) and Word release note (.docx)
+// Built 100% locally with a tiny built-in ZIP writer: no library, no network.
+// ---------------------------------------------------------------------
+
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+// files: [{ name, data }] (data = string or Uint8Array) -> Uint8Array (.zip, "stored" = no compression)
+function makeZip(files) {
+  const enc = new TextEncoder();
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  files.forEach((f) => {
+    const name = enc.encode(f.name);
+    const data = typeof f.data === "string" ? enc.encode(f.data) : f.data;
+    const crc = crc32(data);
+
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true);
+    lh.setUint16(4, 20, true);
+    lh.setUint16(6, 0x0800, true);   // UTF-8 file names
+    lh.setUint16(8, 0, true);        // stored
+    lh.setUint16(10, 0, true);
+    lh.setUint16(12, 0x0021, true);  // 1980-01-01
+    lh.setUint32(14, crc, true);
+    lh.setUint32(18, data.length, true);
+    lh.setUint32(22, data.length, true);
+    lh.setUint16(26, name.length, true);
+    lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true);
+    ch.setUint16(4, 20, true);
+    ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true);
+    ch.setUint16(10, 0, true);
+    ch.setUint16(12, 0, true);
+    ch.setUint16(14, 0x0021, true);
+    ch.setUint32(16, crc, true);
+    ch.setUint32(20, data.length, true);
+    ch.setUint32(24, data.length, true);
+    ch.setUint16(28, name.length, true);
+    ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+
+    offset += 30 + name.length + data.length;
+  });
+  const centralSize = central.reduce((n, p) => n + p.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, files.length, true);
+  end.setUint16(10, files.length, true);
+  end.setUint32(12, centralSize, true);
+  end.setUint32(16, offset, true);
+
+  const all = [...parts, ...central, new Uint8Array(end.buffer)];
+  const out = new Uint8Array(all.reduce((n, p) => n + p.length, 0));
+  let pos = 0;
+  all.forEach((p) => { out.set(p, pos); pos += p.length; });
+  return out;
+}
+
+function downloadBytes(bytes, filename, mime) {
+  const blob = new Blob([bytes], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+const XML_HEAD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+function xmlEsc(str) {
+  return String(str ?? "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+// ---- what is exported: the period of the current view, with the current filters ----
+function periodInfo() {
+  const y = currentYear;
+  if (currentView === "year") {
+    return { start: new Date(y, 0, 1), end: new Date(y + 1, 0, 1), label: String(y), slug: String(y), months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], isYear: true, q: null };
+  }
+  const q = currentQuarter;
+  return { start: new Date(y, q * 3, 1), end: new Date(y, q * 3 + 3, 1), label: `Q${q + 1} ${y}`, slug: `${y}-Q${q + 1}`, months: [q * 3, q * 3 + 1, q * 3 + 2], isYear: false, q };
+}
+function periodItems() {
+  return getFiltered().filter((it) => it.year === currentYear && (currentView === "year" || it.quarter === currentQuarter));
+}
+function periodRangeText(period) {
+  const last = new Date(period.end.getTime() - 86400000);
+  return `${fmtDateLong(period.start)} – ${fmtDateLong(last)}`;
+}
+function activeFiltersSummary() {
+  const labels = { domain: "Domain", team: "Team", zone: "Zone", platform: "Platform", status: "Status" };
+  const parts = [];
+  FILTER_KEYS.forEach((k) => {
+    if (filterTotal[k] && filterState[k].size !== filterTotal[k]) {
+      parts.push(`${labels[k]}: ${filterState[k].size ? [...filterState[k]].join(", ") : "none"}`);
+    }
+  });
+  if (searchQuery) parts.push(`Search: "${document.getElementById("searchInput").value.trim()}"`);
+  return parts.join(" · ");
+}
+function exportNothing() {
+  showError("Nothing to export for the current view and filters.");
+}
+
+// =====================================================================
+// POWERPOINT — timeline (planning) of the displayed period
+//   Build      = period start  -> UAT start
+//   UAT        = UAT start     -> Go Live
+//   Activation = star at the Go Live date
+// =====================================================================
+
+const PPT = {
+  W: 13.333, H: 7.5, M: 0.4, TITLE_W: 4.0, ROW_H: 0.33, GRP_H: 0.27,
+  BUILD: "9DBDE8", UAT: "B79CE0", STAR: "F2B01E", STAR_LINE: "8A5A00",
+  INK: "1A1A1A", MUTED: "6B6B6B", BROWN: "3E2A1E", BAND: "F3EDE4", GRID: "E3DCD2", TODAY: "C0392B",
+};
+const EMU = (inches) => Math.round(inches * 914400);
+const hex6 = (c) => c.replace("#", "").toUpperCase();
+
+// Which segments of the bar fall inside the displayed period (null = nothing to draw there)
+function timelineSegments(it, period) {
+  const ps = period.start.getTime(), pe = period.end.getTime();
+  let uat = it.uat ? it.uat.getTime() : null;
+  const gl = it.golive ? it.golive.getTime() : null;
+  if (uat !== null && gl !== null && uat > gl) uat = null; // inconsistent dates: UAT ignored
+  const clip = (a, b) => { const s = Math.max(a, ps), e = Math.min(b, pe); return e > s ? [s, e] : null; };
+  let build = null, uatSeg = null, star = null;
+  if (uat !== null && gl !== null) { build = clip(ps, uat); uatSeg = clip(uat, gl); }
+  else if (gl !== null) { build = clip(ps, gl); }
+  else if (uat !== null) { build = clip(ps, uat); uatSeg = clip(uat, pe); }
+  if (gl !== null && gl >= ps && gl < pe) star = gl;
+  if (!build && !uatSeg && star === null) return null;
+  return { build, uat: uatSeg, star };
+}
+
+function makeSlide() {
+  return { shapes: [], links: [], id: 1 };
+}
+function runXml(slide, r) {
+  let link = "";
+  if (r.link) {
+    slide.links.push(r.link);
+    link = `<a:hlinkClick r:id="rId${slide.links.length + 1}"/>`;
+  }
+  return `<a:r><a:rPr lang="en-US" sz="${Math.round(r.sz * 100)}" b="${r.b ? 1 : 0}" dirty="0"><a:solidFill><a:srgbClr val="${r.color || PPT.INK}"/></a:solidFill><a:latin typeface="Calibri"/>${link}</a:rPr><a:t>${xmlEsc(r.t)}</a:t></a:r>`;
+}
+function addShape(slide, o) {
+  const id = ++slide.id;
+  const fill = o.fill ? `<a:solidFill><a:srgbClr val="${o.fill}"/></a:solidFill>` : "<a:noFill/>";
+  const ln = o.line
+    ? `<a:ln w="${Math.round(o.line.w * 12700)}"><a:solidFill><a:srgbClr val="${o.line.color}"/></a:solidFill></a:ln>`
+    : "<a:ln><a:noFill/></a:ln>";
+  const av = o.adj != null ? `<a:avLst><a:gd name="adj" fmla="val ${o.adj}"/></a:avLst>` : "<a:avLst/>";
+  let tx = "";
+  if (o.paras) {
+    tx = `<p:txBody><a:bodyPr wrap="square" lIns="0" tIns="0" rIns="0" bIns="0" anchor="${o.anchor || "ctr"}" rtlCol="0"><a:noAutofit/></a:bodyPr><a:lstStyle/>` +
+      o.paras.map((p) => `<a:p><a:pPr algn="${p.algn || "l"}"/>${p.runs.map((r) => runXml(slide, r)).join("")}</a:p>`).join("") +
+      `</p:txBody>`;
+  }
+  slide.shapes.push(
+    `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="${xmlEsc(o.name || "Shape " + id)}"/><p:cNvSpPr${o.txBox ? ' txBox="1"' : ""}/><p:nvPr/></p:nvSpPr>` +
+    `<p:spPr><a:xfrm><a:off x="${EMU(o.x)}" y="${EMU(o.y)}"/><a:ext cx="${EMU(o.w)}" cy="${EMU(o.h)}"/></a:xfrm>` +
+    `<a:prstGeom prst="${o.geom || "rect"}">${av}</a:prstGeom>${fill}${ln}</p:spPr>${tx}</p:sp>`
+  );
+}
+function addText(slide, o) {
+  addShape(slide, { ...o, txBox: true });
+}
+
+function slideXml(slide) {
+  return XML_HEAD +
+    `<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">` +
+    `<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>` +
+    `<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>` +
+    slide.shapes.join("") +
+    `</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`;
+}
+function slideRelsXml(slide) {
+  return XML_HEAD +
+    `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+    `<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>` +
+    slide.links.map((url, i) => `<Relationship Id="rId${i + 2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${xmlEsc(url)}" TargetMode="External"/>`).join("") +
+    `</Relationships>`;
+}
+
+function truncate(str, n) {
+  const s = (str || "").replace(/\s+/g, " ").trim();
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+// Group by team (squad); Zone tickets, which have no team, are grouped by zone
+function groupEntries(entries) {
+  const map = new Map();
+  entries.forEach((e) => {
+    const it = e.it;
+    const name = it.team || (it.domain === "Zone" ? `Zone – ${it.zone}` : "No team");
+    if (!map.has(name)) map.set(name, []);
+    map.get(name).push(e);
+  });
+  const sortKey = (e) => {
+    const d = e.it.uat || e.it.golive;
+    return d ? d.getTime() : Infinity;
+  };
+  return [...map.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([name, list]) => ({
+      name,
+      entries: list.slice().sort((a, b) => sortKey(a) - sortKey(b) || a.it.title.localeCompare(b.it.title)),
+    }));
+}
+
+function paginateRows(groups, topY, bottomY) {
+  const pages = [];
+  let page = [], y = topY;
+  const flush = () => { if (page.length) pages.push(page); page = []; y = topY; };
+  groups.forEach((g) => {
+    let needHeader = true;
+    g.entries.forEach((e, i) => {
+      if (y + (needHeader ? PPT.GRP_H : 0) + PPT.ROW_H > bottomY) { flush(); needHeader = true; }
+      if (needHeader) {
+        page.push({ type: "group", name: g.name, cont: i > 0, y });
+        y += PPT.GRP_H;
+        needHeader = false;
+      }
+      page.push({ type: "item", entry: e, y });
+      y += PPT.ROW_H;
+    });
+  });
+  flush();
+  return pages;
+}
+
+function buildTimelinePptx({ items, period, subtitle, now }) {
+  const { W, H, M, TITLE_W, ROW_H, GRP_H } = PPT;
+  const X0 = M + TITLE_W + 0.1;
+  const TL_W = W - M - X0;
+  const BOTTOM = H - 0.5;
+  const ps = period.start.getTime(), pe = period.end.getTime();
+  const toX = (t) => X0 + ((t - ps) / (pe - ps)) * TL_W;
+
+  const drawn = [], undrawn = [];
+  items.forEach((it) => {
+    const seg = timelineSegments(it, period);
+    (seg ? drawn : undrawn).push({ it, seg });
+  });
+
+  const headerTop = 1.12;
+  const quarterH = 0.26, monthH = 0.28;
+  const headerBottom = period.isYear ? headerTop + quarterH + monthH + 0.02 : headerTop + 0.32;
+  const timelineTop = headerBottom + 0.08;
+  const listTop = 1.2;
+
+  const timelinePages = paginateRows(groupEntries(drawn), timelineTop, BOTTOM).map((rows) => ({ kind: "timeline", rows }));
+  const listPages = paginateRows(groupEntries(undrawn), listTop, BOTTOM).map((rows) => ({ kind: "list", rows }));
+  const pages = [...timelinePages, ...listPages];
+
+  const slides = pages.map((pg, idx) => {
+    const s = makeSlide();
+    const isTimeline = pg.kind === "timeline";
+    const lastRow = pg.rows[pg.rows.length - 1];
+    const rowsBottom = lastRow.y + (lastRow.type === "group" ? GRP_H : ROW_H);
+
+    addText(s, { name: "Title", x: M, y: 0.26, w: 7.6, h: 0.5, paras: [{ runs: [{ t: `Roadmap ${period.label}` + (isTimeline ? "" : " — Not detailed planned"), sz: 22, b: true, color: PPT.BROWN }] }] });
+    addText(s, { name: "Subtitle", x: M, y: 0.76, w: W - 2 * M, h: 0.3, paras: [{ runs: [{ t: subtitle, sz: 10, color: PPT.MUTED }] }] });
+
+    if (isTimeline) {
+      // legend
+      let lx = 8.15;
+      const ly = 0.43;
+      addShape(s, { name: "Legend build", x: lx, y: ly, w: 0.3, h: 0.15, fill: PPT.BUILD, geom: "roundRect", adj: 30000 });
+      addText(s, { name: "Legend build label", x: lx + 0.36, y: ly - 0.03, w: 0.6, h: 0.21, paras: [{ runs: [{ t: "Build", sz: 9, color: PPT.INK }] }] });
+      lx += 1.0;
+      addShape(s, { name: "Legend UAT", x: lx, y: ly, w: 0.3, h: 0.15, fill: PPT.UAT, geom: "roundRect", adj: 30000 });
+      addText(s, { name: "Legend UAT label", x: lx + 0.36, y: ly - 0.03, w: 0.5, h: 0.21, paras: [{ runs: [{ t: "UAT", sz: 9, color: PPT.INK }] }] });
+      lx += 0.9;
+      addShape(s, { name: "Legend star", x: lx, y: ly - 0.03, w: 0.21, h: 0.21, fill: PPT.STAR, geom: "star5", line: { color: PPT.STAR_LINE, w: 0.75 } });
+      addText(s, { name: "Legend star label", x: lx + 0.27, y: ly - 0.03, w: 1.5, h: 0.21, paras: [{ runs: [{ t: "Activation (Go Live)", sz: 9, color: PPT.INK }] }] });
+      lx += 1.65;
+      addShape(s, { name: "Legend today", x: lx, y: ly - 0.03, w: 0.02, h: 0.21, fill: PPT.TODAY });
+      addText(s, { name: "Legend today label", x: lx + 0.08, y: ly - 0.03, w: 0.5, h: 0.21, paras: [{ runs: [{ t: "Today", sz: 9, color: PPT.INK }] }] });
+
+      // header: quarters (year view) + months
+      addText(s, { name: "Feature header", x: M + 0.1, y: headerBottom - 0.26, w: 2, h: 0.24, paras: [{ runs: [{ t: "Feature", sz: 8, b: true, color: PPT.MUTED }] }] });
+      if (period.isYear) {
+        for (let q = 0; q < 4; q++) {
+          const a = new Date(currentYear, q * 3, 1).getTime(), b = new Date(currentYear, q * 3 + 3, 1).getTime();
+          addShape(s, { name: `Quarter Q${q + 1}`, x: toX(a) + 0.01, y: headerTop, w: toX(b) - toX(a) - 0.02, h: quarterH, fill: hex6(quarterColor(q)), paras: [{ algn: "ctr", runs: [{ t: `Q${q + 1}`, sz: 10, b: true, color: "FFFFFF" }] }] });
+        }
+      }
+      period.months.forEach((m, i) => {
+        const a = new Date(currentYear, m, 1).getTime(), b = new Date(currentYear, m + 1, 1).getTime();
+        const y = period.isYear ? headerTop + quarterH + 0.02 : headerTop;
+        const h = period.isYear ? monthH : 0.32;
+        addShape(s, {
+          name: `Month ${MONTH_NAMES_EN[m]}`, x: toX(a) + 0.01, y, w: toX(b) - toX(a) - 0.02, h,
+          fill: period.isYear ? "EFE8DE" : hex6(monthColor(period.q, i)),
+          paras: [{ algn: "ctr", runs: [{ t: period.isYear ? MONTH_NAMES_EN[m].slice(0, 3) : MONTH_NAMES_EN[m], sz: period.isYear ? 8 : 10, b: !period.isYear, color: period.isYear ? PPT.INK : "FFFFFF" }] }],
+        });
+      });
+      // month grid
+      period.months.slice(1).forEach((m) => {
+        const x = toX(new Date(currentYear, m, 1).getTime());
+        addShape(s, { name: "Grid", x: x - 0.004, y: headerBottom + 0.02, w: 0.008, h: rowsBottom - headerBottom, fill: PPT.GRID });
+      });
+      // today line
+      if (now >= ps && now < pe) {
+        addShape(s, { name: "Today", x: toX(now) - 0.01, y: headerBottom + 0.02, w: 0.02, h: rowsBottom - headerBottom, fill: PPT.TODAY });
+      }
+    } else {
+      addText(s, { name: "List note", x: M, y: 1.0, w: W - 2 * M, h: 0.22, paras: [{ runs: [{ t: "No build / UAT / Go Live date falls inside this period for these features.", sz: 9, color: PPT.MUTED }] }] });
+    }
+
+    pg.rows.forEach((row) => {
+      if (row.type === "group") {
+        addShape(s, { name: "Group " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: GRP_H - 0.04, fill: PPT.BAND, paras: [{ runs: [{ t: "  " + row.name + (row.cont ? " (cont.)" : ""), sz: 9, b: true, color: PPT.BROWN }] }] });
+        return;
+      }
+      const { it, seg } = row.entry;
+      addText(s, {
+        name: "Feature " + it.key, x: M + 0.1, y: row.y, w: TITLE_W - 0.15, h: ROW_H,
+        paras: [{ runs: [
+          { t: it.key + "  ", sz: 7, color: "8A8A8A" },
+          { t: truncate(it.title, 62), sz: 8, color: PPT.INK, link: it.link },
+        ] }],
+      });
+      if (!isTimeline) {
+        const txt = (it.uat || it.golive)
+          ? `UAT ${it.uat ? fmtDateLong(it.uat) : "—"}  ·  Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
+          : "No dates yet";
+        addText(s, { name: "Dates " + it.key, x: X0, y: row.y, w: TL_W, h: ROW_H, paras: [{ runs: [{ t: txt, sz: 8, color: PPT.MUTED }] }] });
+        return;
+      }
+      const cy = row.y + ROW_H / 2, bh = 0.15;
+      const bar = (range, fill, label) => {
+        if (!range) return;
+        const x1 = toX(range[0]), x2 = toX(range[1]);
+        addShape(s, { name: `${label} ${it.key}`, x: x1, y: cy - bh / 2, w: Math.max(x2 - x1, 0.04), h: bh, fill, geom: "roundRect", adj: 30000 });
+      };
+      bar(seg.build, PPT.BUILD, "Build");
+      bar(seg.uat, PPT.UAT, "UAT");
+      if (seg.star !== null) {
+        const sx = toX(seg.star), sz = 0.22;
+        addShape(s, { name: "Activation " + it.key, x: sx - sz / 2, y: cy - sz / 2, w: sz, h: sz, fill: PPT.STAR, geom: "star5", line: { color: PPT.STAR_LINE, w: 0.75 } });
+        const label = fmtDateLong(new Date(seg.star));
+        const right = sx + sz / 2 + 0.04 + 0.85 <= X0 + TL_W;
+        addText(s, {
+          name: "Go Live date " + it.key, x: right ? sx + sz / 2 + 0.04 : sx - sz / 2 - 0.04 - 0.85, y: cy - 0.1, w: 0.85, h: 0.2,
+          paras: [{ algn: right ? "l" : "r", runs: [{ t: label, sz: 7, color: PPT.MUTED }] }],
+        });
+      }
+    });
+
+    addText(s, { name: "Footer", x: M, y: H - 0.4, w: 8, h: 0.22, paras: [{ runs: [{ t: "Generated locally from a JIRA export — Quarterly roadmap", sz: 8, color: "8A8A8A" }] }] });
+    addText(s, { name: "Page", x: W - M - 1.5, y: H - 0.4, w: 1.5, h: 0.22, paras: [{ algn: "r", runs: [{ t: `${idx + 1} / ${pages.length}`, sz: 8, color: "8A8A8A" }] }] });
+    return s;
+  });
+
+  return makeZip(buildPptxParts(slides));
+}
+
+function buildPptxParts(slides) {
+  const NS_A = "http://schemas.openxmlformats.org/drawingml/2006/main";
+  const NS_R = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const NS_P = "http://schemas.openxmlformats.org/presentationml/2006/main";
+  const REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const rels = (items) => XML_HEAD + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${items.join("")}</Relationships>`;
+  const emptyTree = `<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree>`;
+
+  const contentTypes = XML_HEAD +
+    `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+    `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+    `<Default Extension="xml" ContentType="application/xml"/>` +
+    `<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>` +
+    `<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>` +
+    `<Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>` +
+    `<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>` +
+    slides.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join("") +
+    `</Types>`;
+
+  const presentation = XML_HEAD +
+    `<p:presentation xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">` +
+    `<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>` +
+    `<p:sldIdLst>${slides.map((_, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 3}"/>`).join("")}</p:sldIdLst>` +
+    `<p:sldSz cx="12192000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`;
+
+  const master = XML_HEAD +
+    `<p:sldMaster xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">` +
+    `<p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg>${emptyTree}</p:cSld>` +
+    `<p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>` +
+    `<p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst>` +
+    `<p:txStyles><p:titleStyle/><p:bodyStyle/><p:otherStyle/></p:txStyles></p:sldMaster>`;
+
+  const layout = XML_HEAD +
+    `<p:sldLayout xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}" type="blank" preserve="1">` +
+    `<p:cSld name="Blank">${emptyTree}</p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`;
+
+  const fills = `<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>`;
+  const theme = XML_HEAD +
+    `<a:theme xmlns:a="${NS_A}" name="Roadmap"><a:themeElements>` +
+    `<a:clrScheme name="Roadmap"><a:dk1><a:srgbClr val="1A1A1A"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="3E2A1E"/></a:dk2><a:lt2><a:srgbClr val="F7F3ED"/></a:lt2>` +
+    `<a:accent1><a:srgbClr val="C08A5C"/></a:accent1><a:accent2><a:srgbClr val="9DBDE8"/></a:accent2><a:accent3><a:srgbClr val="B79CE0"/></a:accent3><a:accent4><a:srgbClr val="F2B01E"/></a:accent4><a:accent5><a:srgbClr val="6B8F71"/></a:accent5><a:accent6><a:srgbClr val="8A8A8A"/></a:accent6>` +
+    `<a:hlink><a:srgbClr val="8A5A33"/></a:hlink><a:folHlink><a:srgbClr val="6B6B6B"/></a:folHlink></a:clrScheme>` +
+    `<a:fontScheme name="Roadmap"><a:majorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme>` +
+    `<a:fmtScheme name="Roadmap"><a:fillStyleLst>${fills}${fills}${fills}</a:fillStyleLst>` +
+    `<a:lnStyleLst><a:ln w="6350">${fills}</a:ln><a:ln w="12700">${fills}</a:ln><a:ln w="19050">${fills}</a:ln></a:lnStyleLst>` +
+    `<a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst>` +
+    `<a:bgFillStyleLst>${fills}${fills}${fills}</a:bgFillStyleLst></a:fmtScheme>` +
+    `</a:themeElements></a:theme>`;
+
+  const files = [
+    { name: "[Content_Types].xml", data: contentTypes },
+    { name: "_rels/.rels", data: rels([`<Relationship Id="rId1" Type="${REL}/officeDocument" Target="ppt/presentation.xml"/>`]) },
+    { name: "ppt/presentation.xml", data: presentation },
+    {
+      name: "ppt/_rels/presentation.xml.rels",
+      data: rels([
+        `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="slideMasters/slideMaster1.xml"/>`,
+        `<Relationship Id="rId2" Type="${REL}/theme" Target="theme/theme1.xml"/>`,
+        ...slides.map((_, i) => `<Relationship Id="rId${i + 3}" Type="${REL}/slide" Target="slides/slide${i + 1}.xml"/>`),
+      ]),
+    },
+    { name: "ppt/slideMasters/slideMaster1.xml", data: master },
+    {
+      name: "ppt/slideMasters/_rels/slideMaster1.xml.rels",
+      data: rels([
+        `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`,
+        `<Relationship Id="rId2" Type="${REL}/theme" Target="../theme/theme1.xml"/>`,
+      ]),
+    },
+    { name: "ppt/slideLayouts/slideLayout1.xml", data: layout },
+    { name: "ppt/slideLayouts/_rels/slideLayout1.xml.rels", data: rels([`<Relationship Id="rId1" Type="${REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/>`]) },
+    { name: "ppt/theme/theme1.xml", data: theme },
+  ];
+  slides.forEach((s, i) => {
+    files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: slideXml(s) });
+    files.push({ name: `ppt/slides/_rels/slide${i + 1}.xml.rels`, data: slideRelsXml(s) });
+  });
+  return files;
+}
+
+function exportPptx() {
+  const items = periodItems();
+  if (!items.length) return exportNothing();
+  hideError();
+  const period = periodInfo();
+  const filters = activeFiltersSummary();
+  const subtitle = `${periodRangeText(period)} · ${items.length} feature${items.length === 1 ? "" : "s"}` + (filters ? ` · ${filters}` : "");
+  const bytes = buildTimelinePptx({ items, period, subtitle, now: Date.now() });
+  downloadBytes(bytes, `roadmap-timeline-${period.slug}.pptx`, "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+}
+
+// =====================================================================
+// WORD — release note (vertical list, grouped by domain)
+// =====================================================================
+
+const DOMAIN_ORDER = ["Discovery", "Profile & Order", "Zone", "Other"];
+
+function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
+  const W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+  const R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+  const links = [];
+  const linkId = (url) => { links.push(url); return `rId${links.length + 2}`; }; // rId1 = styles, rId2 = numbering
+
+  const run = (text, { b, color, sz, style } = {}) =>
+    `<w:r><w:rPr>${style ? `<w:rStyle w:val="${style}"/>` : ""}${b ? "<w:b/>" : ""}${color ? `<w:color w:val="${color}"/>` : ""}${sz ? `<w:sz w:val="${sz}"/>` : ""}</w:rPr><w:t xml:space="preserve">${xmlEsc(text)}</w:t></w:r>`;
+  const para = (inner, style, extraPPr = "") =>
+    `<w:p><w:pPr>${style ? `<w:pStyle w:val="${style}"/>` : ""}${extraPPr}</w:pPr>${inner}</w:p>`;
+
+  const body = [];
+  body.push(para(run(`Release note — ${period.label}`), "Title"));
+  body.push(para(run(subtitle), "Subtitle"));
+
+  const byDomain = new Map();
+  items.forEach((it) => {
+    const d = it.domain || "Other";
+    if (!byDomain.has(d)) byDomain.set(d, []);
+    byDomain.get(d).push(it);
+  });
+  const domains = [...byDomain.keys()].sort((a, b) => {
+    const ia = DOMAIN_ORDER.indexOf(a), ib = DOMAIN_ORDER.indexOf(b);
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
+  });
+
+  domains.forEach((d) => {
+    const list = byDomain.get(d).slice().sort((a, b) => {
+      const ta = a.golive ? a.golive.getTime() : Infinity, tb = b.golive ? b.golive.getTime() : Infinity;
+      return ta - tb || a.title.localeCompare(b.title);
+    });
+    body.push(para(run(`${d} (${list.length})`), "Heading1"));
+    list.forEach((it) => {
+      const dates = (it.uat || it.golive)
+        ? `UAT ${it.uat ? fmtDateLong(it.uat) : "—"} → Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
+        : "Dates to be confirmed";
+      const meta = [it.key, it.team, it.platform, it.zone && it.domain !== "Zone" ? it.zone : (it.domain === "Zone" ? "Zone " + it.zone : ""), dates, it.status].filter(Boolean).join(" · ");
+      const titleRun = it.link
+        ? `<w:hyperlink r:id="${linkId(it.link)}" w:history="1">${run(it.title, { b: true, style: "Hyperlink" })}</w:hyperlink>`
+        : run(it.title, { b: true });
+      const metaRun = `<w:r><w:rPr><w:color w:val="6B6B6B"/><w:sz w:val="18"/></w:rPr><w:br/><w:t xml:space="preserve">${xmlEsc(meta)}</w:t></w:r>`;
+      body.push(para(titleRun + metaRun, "ListParagraph", `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>`));
+    });
+  });
+  body.push(para(run(`Generated locally from a JIRA export — ${generated}`, { color: "8A8A8A", sz: 16 })));
+
+  const document = XML_HEAD +
+    `<w:document xmlns:w="${W_NS}" xmlns:r="${R_NS}"><w:body>${body.join("")}` +
+    `<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+
+  const styles = XML_HEAD +
+    `<w:styles xmlns:w="${W_NS}"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:lang w:val="en-GB"/></w:rPr></w:rPrDefault>` +
+    `<w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="264" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>` +
+    `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>` +
+    `<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/></w:pPr><w:rPr><w:b/><w:color w:val="3E2A1E"/><w:sz w:val="44"/></w:rPr></w:style>` +
+    `<w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="240"/></w:pPr><w:rPr><w:color w:val="6B6B6B"/><w:sz w:val="22"/></w:rPr></w:style>` +
+    `<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="2" w:color="C08A5C"/></w:pBdr><w:spacing w:before="320" w:after="140"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="3E2A1E"/><w:sz w:val="28"/></w:rPr></w:style>` +
+    `<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="140"/><w:ind w:left="720"/></w:pPr></w:style>` +
+    `<w:style w:type="character" w:styleId="Hyperlink"><w:name w:val="Hyperlink"/><w:rPr><w:color w:val="8A5A33"/><w:u w:val="single"/></w:rPr></w:style>` +
+    `</w:styles>`;
+
+  const numbering = XML_HEAD +
+    `<w:numbering xmlns:w="${W_NS}"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="hybridMultilevel"/>` +
+    `<w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="567" w:hanging="283"/></w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:hint="default"/></w:rPr></w:lvl>` +
+    `</w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num></w:numbering>`;
+
+  const contentTypes = XML_HEAD +
+    `<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+    `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+    `<Default Extension="xml" ContentType="application/xml"/>` +
+    `<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>` +
+    `<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>` +
+    `<Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/></Types>`;
+
+  const docRels = XML_HEAD +
+    `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
+    `<Relationship Id="rId1" Type="${REL}/styles" Target="styles.xml"/>` +
+    `<Relationship Id="rId2" Type="${REL}/numbering" Target="numbering.xml"/>` +
+    links.map((url, i) => `<Relationship Id="rId${i + 3}" Type="${REL}/hyperlink" Target="${xmlEsc(url)}" TargetMode="External"/>`).join("") +
+    `</Relationships>`;
+
+  return makeZip([
+    { name: "[Content_Types].xml", data: contentTypes },
+    { name: "_rels/.rels", data: XML_HEAD + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/officeDocument" Target="word/document.xml"/></Relationships>` },
+    { name: "word/document.xml", data: document },
+    { name: "word/_rels/document.xml.rels", data: docRels },
+    { name: "word/styles.xml", data: styles },
+    { name: "word/numbering.xml", data: numbering },
+  ]);
+}
+
+function exportDocx() {
+  const items = periodItems();
+  if (!items.length) return exportNothing();
+  hideError();
+  const period = periodInfo();
+  const filters = activeFiltersSummary();
+  const subtitle = `${periodRangeText(period)} · ${items.length} feature${items.length === 1 ? "" : "s"}` + (filters ? ` · ${filters}` : "");
+  const bytes = buildReleaseNoteDocx({ items, period, subtitle, generated: fmtDateLong(new Date()) });
+  downloadBytes(bytes, `release-note-${period.slug}.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+}
+
+
+function initFiltersAndPills(items) {
+  // optional filters: hidden if the column is absent/empty everywhere
+  [["domain", "Domain"], ["team", "Team"], ["zone", "Zone"], ["platform", "Platform"]].forEach(([key, label]) => {
+    const values = [...new Set(items.flatMap((it) => itemFilterValues(it, key)))].sort((a, b) => {
+      if (key === "zone") { if (a === "All") return -1; if (b === "All") return 1; } // "All" listed first
+      return a.localeCompare(b);
+    });
+    buildMultiSelect(key, label, values);
+  });
+
+  const statuses = [...new Set(items.map((it) => it.status).filter(Boolean))].sort();
+  buildMultiSelect("status", "Status", statuses);
+
+  // available years from the PI field (Year/Quarter placement)
+  const years = [...new Set(items.filter((it) => it.year != null).map((it) => it.year))].sort();
+  if (years.length === 0) years.push(new Date().getFullYear());
+  currentYear = years.includes(new Date().getFullYear()) ? new Date().getFullYear() : years[0];
+
+  const yearPills = document.getElementById("yearPills");
+  yearPills.innerHTML = "";
+  years.forEach((y) => {
+    const btn = document.createElement("button");
+    btn.textContent = y;
+    btn.className = y === currentYear ? "active" : "";
+    btn.addEventListener("click", () => {
+      currentYear = y;
+      [...yearPills.children].forEach((b) => b.classList.toggle("active", b === btn));
+      render();
+    });
+    yearPills.appendChild(btn);
+  });
+
+  const quarterPills = document.getElementById("quarterPills");
+  quarterPills.innerHTML = "";
+  ["Q1", "Q2", "Q3", "Q4"].forEach((label, i) => {
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.className = i === currentQuarter ? "active" : "";
+    btn.addEventListener("click", () => {
+      currentQuarter = i;
+      [...quarterPills.children].forEach((b) => b.classList.toggle("active", b === btn));
+      render();
+    });
+    quarterPills.appendChild(btn);
+  });
+}
+
+const FILTER_KEYS = ["domain", "team", "zone", "platform", "status"];
+function filterContainer(key) { return document.getElementById(`f${key.charAt(0).toUpperCase()}${key.slice(1)}`); }
+
+// Zone is multi-valued (a ticket can impact EMEA and Japan); other fields hold one value.
+function itemFilterValues(it, key) {
+  if (key === "zone") return it.zones || [];
+  return it[key] ? [it[key]] : [];
+}
+
+// An item is excluded by a filter if it has value(s) for that field and none is checked.
+// Items with no value for a field always pass that field's filter.
+let searchQuery = "";
+const normText = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  searchQuery = normText(e.target.value.trim());
+  render();
+});
+
+function passesFilters(it, skipKey) {
+  if (searchQuery && !normText(it.title).includes(searchQuery) && !normText(it.key).includes(searchQuery)) return false;
+  for (const key of FILTER_KEYS) {
+    if (key === skipKey || !filterTotal[key]) continue;
+    const vals = itemFilterValues(it, key);
+    if (!vals.length) continue;
+    if (!vals.some((v) => filterState[key].has(v))) return false;
+  }
+  return true;
+}
+
+function getFiltered() {
+  return allItems.filter((it) => passesFilters(it, null));
+}
+
+// Dynamic filters: an option is greyed when no ticket matches it given the OTHER filters' selections.
+function updateFilterAvailability() {
+  FILTER_KEYS.forEach((key) => {
+    if (!filterTotal[key]) return;
+    const available = new Set();
+    allItems.forEach((it) => {
+      if (!passesFilters(it, key)) return;
+      itemFilterValues(it, key).forEach((v) => available.add(v));
+    });
+    filterContainer(key).querySelectorAll(".ms-option").forEach((label) => {
+      const cb = label.querySelector("input");
+      const off = !available.has(cb.value);
+      label.classList.toggle("unavailable", off);
+      cb.disabled = off; // greyed and not selectable
+    });
+  });
+}
+
+// ---------------------------------------------------------------------
+// RENDER
+// ---------------------------------------------------------------------
+
+const boardEl = document.getElementById("board");
+
+function render() {
+  if (allItems.length === 0) return;
+  const filtered = getFiltered();
+  updateFilterAvailability();
+  boardEl.classList.add("visible");
+
+  // Placement (which year/quarter a card falls into) is driven by the PI field;
+  // Go Live / UAT stay purely informational, displayed dates on each item.
+  // (every loaded item has a valid PI — rows without one are rejected at import)
+  const inYear = filtered.filter((it) => it.year === currentYear);
+  if (currentView === "year") renderYear(inYear);
+  else renderQuarter(inYear);
+}
+
+// ---- Year view: one card per quarter (quarter comes from the PI field) ----
+function renderYear(items) {
+  const columns = [];
+  for (let q = 0; q < 4; q++) {
+    const qItems = items.filter((it) => it.quarter === q);
+    columns.push({
+      label: `Q${q + 1}`,
+      sub: QUARTER_MONTHS_EN[q].join(" "),
+      color: quarterColor(q),
+      items: qItems,
+      showShortDesc: false,
+    });
+  }
+  renderBoard(columns);
+}
+
+// ---- Quarter view: one card per month (kept same structure, now a card too) ----
+// Month placement: UAT start month when it falls in the PI quarter, otherwise Go Live month
+// when it does. Tickets with no usable date go to the optional "Not detailed planned" column.
+function monthInQuarter(it, q) {
+  for (const d of [it.uat, it.golive]) {
+    if (d && d.getFullYear() === currentYear && Math.floor(d.getMonth() / 3) === q) return d.getMonth();
+  }
+  return -1;
+}
+function renderQuarter(items) {
+  const q = currentQuarter;
+  const placed = items.filter((it) => it.quarter === q).map((it) => ({ it, m: monthInQuarter(it, q) }));
+  const columns = [];
+  for (let m = 0; m < 3; m++) {
+    const monthIndex = q * 3 + m;
+    columns.push({
+      label: `${MONTH_NAMES_EN[monthIndex]} ${String(currentYear).slice(-2)}`,
+      sub: "",
+      color: monthColor(q, m),
+      items: placed.filter((p) => p.m === monthIndex).map((p) => p.it),
+      showShortDesc: true,
+    });
+  }
+  if (showNotDetailed) {
+    columns.push({
+      label: "Not detailed planned",
+      sub: "",
+      color: null,
+      items: placed.filter((p) => p.m === -1).map((p) => p.it),
+      showShortDesc: true,
+    });
+  }
+  renderBoard(columns);
+}
+
+function renderBoard(columns) {
+  const grid = document.createElement("div");
+  grid.className = "board-grid";
+  grid.style.gridTemplateColumns = `repeat(${columns.length}, 1fr)`;
+  columns.forEach((col) => grid.appendChild(buildCard(col)));
+  boardEl.innerHTML = "";
+  boardEl.appendChild(grid);
+}
+
+// Same 3-column structure as the former table (Title / UAT start / Go Live),
+// rendered as a soft card; items grouped by status so the status is shown
+// once per group rather than once per item.
+function buildCard({ label, sub, color, items, showShortDesc }) {
+  const card = document.createElement("div");
+  card.className = "board-card";
+
+  const head = document.createElement("div");
+  head.className = "card-head";
+  head.style.background = color || "var(--card-bg)";
+  head.style.color = color ? "#fff" : "var(--color-text)";
+  head.innerHTML = `
+    <span class="label">${escapeHTML(label)}</span>
+    ${sub ? `<span class="sub">${escapeHTML(sub)}</span>` : ""}
+  `;
+  const sticky = document.createElement("div");
+  sticky.className = "card-sticky";
+  sticky.appendChild(head);
+
+  const colLabels = document.createElement("div");
+  colLabels.className = "col-labels";
+  colLabels.innerHTML = `<div class="col-title">Title${showShortDesc ? '<br>Short description' : ""}</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div>`;
+  sticky.appendChild(colLabels);
+  card.appendChild(sticky);
+
+  if (items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-row";
+    empty.textContent = "Nothing planned here.";
+    card.appendChild(empty);
+    return card;
+  }
+
+  groupByStatus(items).forEach(({ status, its }) => {
+    const group = document.createElement("div");
+    group.className = "status-group";
+    const label2 = document.createElement("div");
+    label2.className = "status-label";
+    label2.innerHTML = statusTagHTML(status);
+    group.appendChild(label2);
+    its.forEach((it) => group.appendChild(buildItemLine(it, showShortDesc)));
+    card.appendChild(group);
+  });
+  return card;
+}
+
+// Status -> colour family (matched case-insensitively). Unknown statuses get a neutral outline tag.
+const STATUS_COLORS = {
+  "new": "gray", "on hold": "gray", "cancelled": "gray", "canceled": "gray",
+  "ready to design": "blue", "solution design": "blue", "ready to dev": "blue", "build": "blue",
+  "uat": "purple",
+  "done": "green",
+};
+const normStatus = (s) => (s || "").trim().replace(/\s+/g, " ").toLowerCase();
+function statusTagHTML(status, extraClass) {
+  const label = status || "No status";
+  const family = STATUS_COLORS[normStatus(status)] || "other";
+  return `<span class="status-tag st-${family}${extraClass ? " " + extraClass : ""}">${escapeHTML(label)}</span>`;
+}
+// Lifecycle order so colour families sit together on the board
+const STATUS_ORDER = ["new", "ready to design", "solution design", "ready to dev", "build", "uat", "done", "on hold", "cancelled", "canceled"];
+function groupByStatus(items) {
+  const map = new Map();
+  items.forEach((it) => {
+    const key = it.status || "";
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(it);
+  });
+  const keys = [...map.keys()].sort((a, b) => {
+    const ia = STATUS_ORDER.indexOf(normStatus(a)), ib = STATUS_ORDER.indexOf(normStatus(b));
+    if (ia === -1 && ib === -1) return a.localeCompare(b);
+    if (ia === -1) return 1;
+    if (ib === -1) return -1;
+    return ia - ib;
+  });
+  return keys.map((k) => ({ status: k, its: sortByGoLive(map.get(k)) }));
+}
+
+function sortByGoLive(items) {
+  return items.slice().sort((a, b) => {
+    if (!a.golive && !b.golive) return 0;
+    if (!a.golive) return 1;
+    if (!b.golive) return -1;
+    return a.golive - b.golive;
+  });
+}
+
+function buildItemLine(item, showShortDesc) {
+  const row = document.createElement("div");
+  row.className = "item-line";
+  row.innerHTML = `
+    <div class="col-title">
+      <span>${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a>` : escapeHTML(item.title)}</span>
+      ${showShortDesc && item.shortDesc ? `<span class="il-desc">${escapeHTML(item.shortDesc)}</span>` : ""}
+    </div>
+    <div class="col-uat">${item.uat ? fmtDateLong(item.uat) : "—"}</div>
+    <div class="col-golive">${item.golive ? fmtDateLong(item.golive) : "—"}</div>
+  `;
+  return row;
+}
+
+function fmtDateShort(d) {
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+}
+function fmtDateLong(d) {
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+function escapeHTML(str) {
+  const div = document.createElement("div");
+  div.textContent = str ?? "";
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
