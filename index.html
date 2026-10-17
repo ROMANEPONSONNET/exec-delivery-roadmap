@@ -22,7 +22,34 @@
 
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: -apple-system, "Segoe UI", Arial, sans-serif; }
+  body.page-locked .wrap { display: none; }
+  body.page-unlocked #pageLock { display: none; }
   .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  #pageLock {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #f8f2ea 0%, #efe6dc 100%); z-index: 2000;
+  }
+  .auth-box {
+    width: min(92vw, 420px); background: rgba(255,255,255,0.9); border: 1px solid var(--color-border);
+    border-radius: 18px; box-shadow: 0 18px 50px rgba(23, 19, 15, 0.12); padding: 28px 24px;
+  }
+  .auth-box h2 { margin: 0 0 8px; font-size: 26px; }
+  .auth-box p { margin: 0 0 18px; font-size: 14px; color: var(--color-muted); }
+  .auth-field { display: grid; gap: 8px; margin-bottom: 14px; }
+  .auth-field label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-muted); }
+  .auth-field input {
+    width: 100%; border: 1px solid var(--color-border); border-radius: 10px; height: 42px; padding: 0 12px;
+    font-size: 14px; font-family: inherit; background: #fff; color: var(--color-text);
+  }
+  .auth-box button {
+    width: 100%; border: none; border-radius: 10px; background: var(--grad-dark); color: #fff; font-weight: 700;
+    height: 42px; cursor: pointer; font-family: inherit; margin-top: 8px;
+  }
+  .auth-error {
+    margin-top: 12px; min-height: 18px; font-size: 13px; color: #a13327; display: none;
+  }
+  .auth-error.visible { display: block; }
 
   header.top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; }
   h1 { font-size: 26px; margin: 0; text-decoration: underline; text-underline-offset: 6px; }
@@ -189,7 +216,23 @@
   }
 </style>
 </head>
-<body>
+<body class="page-locked">
+<div id="pageLock" aria-live="polite">
+  <form class="auth-box" id="authForm">
+    <h2>Accès protégé</h2>
+    <p>Connectez-vous pour afficher la roadmap.</p>
+    <div class="auth-field">
+      <label for="authUser">Identifiant</label>
+      <input id="authUser" name="username" type="text" autocomplete="username" required>
+    </div>
+    <div class="auth-field">
+      <label for="authPass">Mot de passe</label>
+      <input id="authPass" name="password" type="password" autocomplete="current-password" required>
+    </div>
+    <button type="submit">Accéder</button>
+    <div class="auth-error" id="authError">Identifiant ou mot de passe incorrect.</div>
+  </form>
+</div>
 <div class="wrap">
   <header class="top">
     <h1>Executive delivery roadmap</h1>
@@ -265,6 +308,45 @@
 </div>
 
 <script>
+const PAGE_CREDENTIALS = {
+  username: "romane",
+  password: "FleurBleue1234"
+};
+
+const authForm = document.getElementById("authForm");
+const authError = document.getElementById("authError");
+const authUser = document.getElementById("authUser");
+const authPass = document.getElementById("authPass");
+
+function unlockPage() {
+  document.body.classList.remove("page-locked");
+  document.body.classList.add("page-unlocked");
+  sessionStorage.setItem("roadmapAuth", "ok");
+}
+
+function showAuthError() {
+  authError.classList.add("visible");
+}
+
+if (sessionStorage.getItem("roadmapAuth") === "ok") {
+  unlockPage();
+}
+
+authForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const username = authUser.value.trim();
+  const password = authPass.value;
+
+  if (username === PAGE_CREDENTIALS.username && password === PAGE_CREDENTIALS.password) {
+    unlockPage();
+    return;
+  }
+
+  authError.classList.add("visible");
+  authPass.value = "";
+  authPass.focus();
+});
+
 /*
  * Quarterly roadmap — local prototype built from JIRA CSV exports.
  * No external dependency, 100% client-side.
