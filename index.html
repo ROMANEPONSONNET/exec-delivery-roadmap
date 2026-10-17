@@ -1519,7 +1519,7 @@ function statusTagHTML(status, extraClass) {
   return `<span class="status-tag st-${family}${extraClass ? " " + extraClass : ""}">${escapeHTML(label)}</span>`;
 }
 // Lifecycle order so colour families sit together on the board
-const STATUS_ORDER = ["new", "ready to design", "solution design", "ready to dev", "build", "uat", "done", "on hold", "cancelled", "canceled"];
+const STATUS_ORDER = ["done", "uat", "build", "ready to dev", "solution design", "ready to design", "new", "on hold", "cancelled", "canceled"];
 function groupByStatus(items) {
   const map = new Map();
   items.forEach((it) => {
