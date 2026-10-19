@@ -1562,7 +1562,7 @@ function buildCard({ label, sub, color, items, showShortDesc }) {
 
   const colLabels = document.createElement("div");
   colLabels.className = "col-labels";
-  colLabels.innerHTML = `<div class="col-title">Title${showShortDesc ? '<br>Short description' : ""}</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div>`;
+  colLabels.innerHTML = `<div class="col-title">Title</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div>`;
   sticky.appendChild(colLabels);
   card.appendChild(sticky);
 
