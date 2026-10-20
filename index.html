@@ -180,11 +180,10 @@
   .flag-btn { border: none; background: none; cursor: pointer; padding: 0 2px; line-height: 1; color: var(--color-muted); opacity: .35; vertical-align: middle; }
   .flag-btn svg { width: 13px; height: 13px; display: block; margin-left: auto; }
   .flag-btn svg path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
-  .flag-btn.on { color: var(--pill-active-bg); opacity: 1; }
+  .flag-btn.on-squad  { color: #2f6bd7; opacity: 1; }   /* Prio Squad = blue */
+  .flag-btn.on-domain { color: #7a3fd1; opacity: 1; }   /* Prio Domain = violet, overrides Prio Squad */
   .flag-btn.on svg path { fill: currentColor; }
   .item-line:hover .flag-btn, .flag-btn:focus-visible { opacity: 1; }
-  .prio-chips { display: flex; gap: 4px; flex-wrap: wrap; }
-  .prio-chip { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 1px 7px; border-radius: 999px; background: #f3e5d6; color: #7a4a22; }
   .prio-menu {
     display: none; position: absolute; z-index: 60; background: #fff; border: 1px solid var(--color-border);
     border-radius: 10px; box-shadow: 0 8px 24px rgba(23,19,15,.14); padding: 8px 12px; font-size: 12.5px;
@@ -193,20 +192,28 @@
   .prio-menu .pm-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-muted); margin-bottom: 4px; }
   .prio-menu label { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; white-space: nowrap; }
 
-  #prioSection { display: none; margin-bottom: 22px; }
-  #prioSection.visible { display: block; }
-  .prio-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 0 10px; }
-  .prio-head h2 { font-size: 18px; margin: 0; }
-  .prio-head .prio-note { font-size: 12px; color: var(--color-muted); }
-  .prio-head .prio-reset { border: 1px solid var(--color-border); background: #fff; border-radius: 999px; font-size: 11.5px; padding: 3px 12px; cursor: pointer; font-family: inherit; color: var(--color-text); }
-  .prio-head .prio-reset:hover { border-color: var(--pill-active-bg); }
+  .prio-menu .pm-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  /* ---- Swimlanes: Domain > Team rows, same columns as the cards (quarters / months) ---- */
+  .lanes-grid { display: grid; align-items: stretch; }
+  .lane-corner, .lane-colhead { position: sticky; top: 0; z-index: 6; }
+  .lane-corner { background: var(--card-bg); border-radius: 12px 0 0 0; padding: 12px 12px 0; font-size: 11px; color: var(--color-muted); display: flex; align-items: flex-end; }
+  .lane-colhead:last-of-type { border-radius: 0 12px 0 0; overflow: clip; }
+  .lane-domain { grid-column: 1 / -1; background: var(--grad-dark); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .02em; padding: 8px 14px; margin-top: 14px; border-radius: 10px 10px 0 0; }
+  .lane-domain:first-of-type { margin-top: 0; }
+  .lane-label { background: var(--card-bg); border: 1px solid var(--color-border); border-top: none; padding: 10px 12px; font-size: 12.5px; font-weight: 600; word-break: break-word; }
+  .lane-cell { background: #fff; border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); min-width: 0; }
+  .lane-cell:nth-child(n) { border-left: 0; }
+  .lane-cell .status-group { padding-bottom: 4px; }
+  .lane-cell .status-group + .status-group { margin-top: 2px; }
+  .lanes-empty { padding: 24px; font-size: 13px; color: var(--color-muted); font-style: italic; }
 
   .empty-row { padding: 14px 16px; font-size: 12px; color: var(--color-muted); font-style: italic; }
 
 
   /* ---- Vertical printable (release-note style) ---- */
   @media print {
-    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu, .prio-reset { display: none !important; }
+    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu { display: none !important; }
     body { padding: 0; }
     .wrap { max-width: none; padding: 0 10mm; }
     .board-grid { break-inside: avoid; }
@@ -250,6 +257,7 @@
       <div class="multiselect" id="fZone"></div>
       <div class="multiselect" id="fPlatform"></div>
       <div class="multiselect" id="fStatus"></div>
+      <div class="multiselect" id="fFlag"></div>
     </div>
   </div>
 
@@ -275,6 +283,13 @@
       <span class="nav-label">Quarter</span>
       <div class="pill-group" id="quarterPills"></div>
     </div>
+    <div class="nav-group">
+      <span class="nav-label">Group by</span>
+      <div class="pill-group" id="groupToggle">
+        <button data-group="none" class="active">None</button>
+        <button data-group="lanes">Domain › Team</button>
+      </div>
+    </div>
     <div class="export-wrap">
       <button id="exportBtn">↓ Export ▾</button>
       <div class="export-menu" id="exportMenu">
@@ -286,7 +301,6 @@
     </div>
   </div>
 
-  <div id="prioSection"></div>
   <div id="board"></div>
 </div>
 
@@ -485,7 +499,6 @@ function mapRowsToItems(rows, fileName) {
       shortDesc: "", // not provided by this export format
       prioSquad,      // editable in the UI (in memory only, never saved)
       prioDomain,
-      prioInit: { prioSquad, prioDomain }, // values coming from JIRA, for the reset button
     });
   }
   return items;
@@ -642,10 +655,10 @@ viewToggle.addEventListener("click", (e) => {
 });
 
 // ---- Multi-select checkbox filters (with Select all / Deselect all) ----
-const filterState = { domain: new Set(), team: new Set(), zone: new Set(), platform: new Set(), status: new Set() };
+const filterState = { domain: new Set(), team: new Set(), zone: new Set(), platform: new Set(), status: new Set(), flag: new Set() };
 // Total distinct values per field — lets us tell "column absent" (0, never filters)
 // apart from "user deselected every option" (filterState empty but total > 0, filters everything out).
-const filterTotal = { domain: 0, team: 0, zone: 0, platform: 0, status: 0 };
+const filterTotal = { domain: 0, team: 0, zone: 0, platform: 0, status: 0, flag: 0 };
 
 function buildMultiSelect(key, label, values) {
   const container = document.getElementById(`f${key.charAt(0).toUpperCase()}${key.slice(1)}`);
@@ -707,6 +720,15 @@ function buildMultiSelect(key, label, values) {
 }
 document.addEventListener("click", () => {
   document.querySelectorAll(".ms-panel.open").forEach((p) => p.classList.remove("open"));
+});
+
+let groupMode = "none"; // "none" | "lanes"
+document.getElementById("groupToggle").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-group]");
+  if (!btn) return;
+  groupMode = btn.dataset.group;
+  document.querySelectorAll("#groupToggle button").forEach((b) => b.classList.toggle("active", b === btn));
+  render();
 });
 
 document.getElementById("ndCheck").addEventListener("change", (e) => {
@@ -872,7 +894,7 @@ function periodRangeText(period) {
   return `${fmtDateLong(period.start)} – ${fmtDateLong(last)}`;
 }
 function activeFiltersSummary() {
-  const labels = { domain: "Domain", team: "Team", zone: "Zone", platform: "Platform", status: "Status" };
+  const labels = { domain: "Domain", team: "Team", zone: "Zone", platform: "Platform", status: "Status", flag: "Flag" };
   const parts = [];
   FILTER_KEYS.forEach((k) => {
     if (filterTotal[k] && filterState[k].size !== filterTotal[k]) {
@@ -894,7 +916,7 @@ function exportNothing() {
 // =====================================================================
 
 const PPT = {
-  W: 13.333, H: 7.5, M: 0.4, TITLE_W: 4.0, ROW_H: 0.33, GRP_H: 0.27,
+  W: 13.333, H: 7.5, M: 0.4, TITLE_W: 4.0, ROW_H: 0.33, GRP_H: 0.25, DOM_H: 0.28,
   BUILD: "9DBDE8", UAT: "B79CE0", STAR: "F2B01E", STAR_LINE: "8A5A00",
   INK: "1A1A1A", MUTED: "6B6B6B", BROWN: "3E2A1E", BAND: "F3EDE4", GRID: "E3DCD2", TODAY: "C0392B",
 };
@@ -972,42 +994,44 @@ function truncate(str, n) {
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
 
-// Group by team (squad); Zone tickets, which have no team, are grouped by zone
+// Swimlanes = Domain > Team (same lanes as the board; Zone tickets, which have no team, use their zone)
 function groupEntries(entries) {
-  const map = new Map();
-  entries.forEach((e) => {
-    const it = e.it;
-    const name = it.team || (it.domain === "Zone" ? `Zone – ${it.zone}` : "No team");
-    if (!map.has(name)) map.set(name, []);
-    map.get(name).push(e);
-  });
+  const byItem = new Map(entries.map((e) => [e.it, e]));
   const sortKey = (e) => {
     const d = e.it.uat || e.it.golive;
     return d ? d.getTime() : Infinity;
   };
-  return [...map.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([name, list]) => ({
-      name,
-      entries: list.slice().sort((a, b) => sortKey(a) - sortKey(b) || a.it.title.localeCompare(b.it.title)),
-    }));
+  return sortedLanes(entries.map((e) => e.it)).map(({ domain, teams }) => ({
+    name: domain,
+    teams: teams.map(({ team, items }) => ({
+      name: team,
+      entries: items.map((it) => byItem.get(it)).sort((a, b) => sortKey(a) - sortKey(b) || a.it.title.localeCompare(b.it.title)),
+    })),
+  }));
 }
 
 function paginateRows(groups, topY, bottomY) {
   const pages = [];
-  let page = [], y = topY;
-  const flush = () => { if (page.length) pages.push(page); page = []; y = topY; };
-  groups.forEach((g) => {
-    let needHeader = true;
-    g.entries.forEach((e, i) => {
-      if (y + (needHeader ? PPT.GRP_H : 0) + PPT.ROW_H > bottomY) { flush(); needHeader = true; }
-      if (needHeader) {
-        page.push({ type: "group", name: g.name, cont: i > 0, y });
-        y += PPT.GRP_H;
-        needHeader = false;
-      }
-      page.push({ type: "item", entry: e, y });
-      y += PPT.ROW_H;
+  let page = [], y = topY, curD = null, curT = null;
+  const seen = new Set();
+  const flush = () => { if (page.length) pages.push(page); page = []; y = topY; curD = null; curT = null; };
+  groups.forEach((d) => {
+    d.teams.forEach((t) => {
+      const tKey = d.name + "|" + t.name;
+      t.entries.forEach((e) => {
+        const need = (curD !== d.name ? PPT.DOM_H : 0) + (curT !== tKey ? PPT.GRP_H : 0) + PPT.ROW_H;
+        if (y + need > bottomY && page.length) flush();
+        if (curD !== d.name) {
+          page.push({ type: "domain", name: d.name, cont: seen.has(d.name), y });
+          seen.add(d.name); curD = d.name; y += PPT.DOM_H;
+        }
+        if (curT !== tKey) {
+          page.push({ type: "team", name: t.name, cont: seen.has(tKey), y });
+          seen.add(tKey); curT = tKey; y += PPT.GRP_H;
+        }
+        page.push({ type: "item", entry: e, y });
+        y += PPT.ROW_H;
+      });
     });
   });
   flush();
@@ -1015,7 +1039,7 @@ function paginateRows(groups, topY, bottomY) {
 }
 
 function buildTimelinePptx({ items, period, subtitle, now }) {
-  const { W, H, M, TITLE_W, ROW_H, GRP_H } = PPT;
+  const { W, H, M, TITLE_W, ROW_H, GRP_H, DOM_H } = PPT;
   const X0 = M + TITLE_W + 0.1;
   const TL_W = W - M - X0;
   const BOTTOM = H - 0.5;
@@ -1042,7 +1066,7 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
     const s = makeSlide();
     const isTimeline = pg.kind === "timeline";
     const lastRow = pg.rows[pg.rows.length - 1];
-    const rowsBottom = lastRow.y + (lastRow.type === "group" ? GRP_H : ROW_H);
+    const rowsBottom = lastRow.y + (lastRow.type === "domain" ? DOM_H : lastRow.type === "team" ? GRP_H : ROW_H);
 
     addText(s, { name: "Title", x: M, y: 0.26, w: 7.6, h: 0.5, paras: [{ runs: [{ t: `Roadmap ${period.label}` + (isTimeline ? "" : " — Not detailed planned"), sz: 22, b: true, color: PPT.BROWN }] }] });
     addText(s, { name: "Subtitle", x: M, y: 0.76, w: W - 2 * M, h: 0.3, paras: [{ runs: [{ t: subtitle, sz: 10, color: PPT.MUTED }] }] });
@@ -1095,8 +1119,12 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
     }
 
     pg.rows.forEach((row) => {
-      if (row.type === "group") {
-        addShape(s, { name: "Group " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: GRP_H - 0.04, fill: PPT.BAND, paras: [{ runs: [{ t: "  " + row.name + (row.cont ? " (cont.)" : ""), sz: 9, b: true, color: PPT.BROWN }] }] });
+      if (row.type === "domain") {
+        addShape(s, { name: "Domain " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: DOM_H - 0.04, fill: PPT.BROWN, paras: [{ runs: [{ t: "  " + row.name + (row.cont ? " (cont.)" : ""), sz: 10, b: true, color: "FFFFFF" }] }] });
+        return;
+      }
+      if (row.type === "team") {
+        addShape(s, { name: "Team " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: GRP_H - 0.04, fill: PPT.BAND, paras: [{ runs: [{ t: "      " + row.name + (row.cont ? " (cont.)" : ""), sz: 9, b: true, color: PPT.BROWN }] }] });
         return;
       }
       const { it, seg } = row.entry;
@@ -1237,8 +1265,6 @@ function exportPptx() {
 // WORD — release note (vertical list, grouped by domain)
 // =====================================================================
 
-const DOMAIN_ORDER = ["Discovery", "Profile & Order", "Zone", "Other"];
-
 function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
   const W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -1255,33 +1281,27 @@ function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
   body.push(para(run(`Release note — ${period.label}`), "Title"));
   body.push(para(run(subtitle), "Subtitle"));
 
-  const byDomain = new Map();
-  items.forEach((it) => {
-    const d = it.domain || "Other";
-    if (!byDomain.has(d)) byDomain.set(d, []);
-    byDomain.get(d).push(it);
-  });
-  const domains = [...byDomain.keys()].sort((a, b) => {
-    const ia = DOMAIN_ORDER.indexOf(a), ib = DOMAIN_ORDER.indexOf(b);
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.localeCompare(b);
-  });
-
-  domains.forEach((d) => {
-    const list = byDomain.get(d).slice().sort((a, b) => {
-      const ta = a.golive ? a.golive.getTime() : Infinity, tb = b.golive ? b.golive.getTime() : Infinity;
-      return ta - tb || a.title.localeCompare(b.title);
-    });
-    body.push(para(run(`${d} (${list.length})`), "Heading1"));
-    list.forEach((it) => {
-      const dates = (it.uat || it.golive)
-        ? `UAT ${it.uat ? fmtDateLong(it.uat) : "—"} → Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
-        : "Dates to be confirmed";
-      const meta = [it.key, it.team, it.platform, it.zone && it.domain !== "Zone" ? it.zone : (it.domain === "Zone" ? "Zone " + it.zone : ""), dates, it.status].filter(Boolean).join(" · ");
-      const titleRun = it.link
-        ? `<w:hyperlink r:id="${linkId(it.link)}" w:history="1">${run(it.title, { b: true, style: "Hyperlink" })}</w:hyperlink>`
-        : run(it.title, { b: true });
-      const metaRun = `<w:r><w:rPr><w:color w:val="6B6B6B"/><w:sz w:val="18"/></w:rPr><w:br/><w:t xml:space="preserve">${xmlEsc(meta)}</w:t></w:r>`;
-      body.push(para(titleRun + metaRun, "ListParagraph", `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>`));
+  // Same swimlanes as the board: Domain (Heading 1) > Team (Heading 2)
+  const byGolive = (a, b) => {
+    const ta = a.golive ? a.golive.getTime() : Infinity, tb = b.golive ? b.golive.getTime() : Infinity;
+    return ta - tb || a.title.localeCompare(b.title);
+  };
+  sortedLanes(items).forEach(({ domain, teams }) => {
+    const total = teams.reduce((n, t) => n + t.items.length, 0);
+    body.push(para(run(`${domain} (${total})`), "Heading1"));
+    teams.forEach(({ team, items: list }) => {
+      body.push(para(run(`${team} (${list.length})`), "Heading2"));
+      list.slice().sort(byGolive).forEach((it) => {
+        const dates = (it.uat || it.golive)
+          ? `UAT ${it.uat ? fmtDateLong(it.uat) : "—"} → Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
+          : "Dates to be confirmed";
+        const meta = [it.key, it.platform, it.domain !== "Zone" ? it.zone : "", dates, it.status].filter(Boolean).join(" · ");
+        const titleRun = it.link
+          ? `<w:hyperlink r:id="${linkId(it.link)}" w:history="1">${run(it.title, { b: true, style: "Hyperlink" })}</w:hyperlink>`
+          : run(it.title, { b: true });
+        const metaRun = `<w:r><w:rPr><w:color w:val="6B6B6B"/><w:sz w:val="18"/></w:rPr><w:br/><w:t xml:space="preserve">${xmlEsc(meta)}</w:t></w:r>`;
+        body.push(para(titleRun + metaRun, "ListParagraph", `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>`));
+      });
     });
   });
   body.push(para(run(`Generated locally from a JIRA export — ${generated}`, { color: "8A8A8A", sz: 16 })));
@@ -1297,6 +1317,7 @@ function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
     `<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="60"/></w:pPr><w:rPr><w:b/><w:color w:val="3E2A1E"/><w:sz w:val="44"/></w:rPr></w:style>` +
     `<w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="240"/></w:pPr><w:rPr><w:color w:val="6B6B6B"/><w:sz w:val="22"/></w:rPr></w:style>` +
     `<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="2" w:color="C08A5C"/></w:pBdr><w:spacing w:before="320" w:after="140"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="3E2A1E"/><w:sz w:val="28"/></w:rPr></w:style>` +
+    `<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="80"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="8A5A33"/><w:sz w:val="24"/></w:rPr></w:style>` +
     `<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="140"/><w:ind w:left="720"/></w:pPr></w:style>` +
     `<w:style w:type="character" w:styleId="Hyperlink"><w:name w:val="Hyperlink"/><w:rPr><w:color w:val="8A5A33"/><w:u w:val="single"/></w:rPr></w:style>` +
     `</w:styles>`;
@@ -1355,6 +1376,7 @@ function initFiltersAndPills(items) {
 
   const statuses = [...new Set(items.map((it) => it.status).filter(Boolean))].sort();
   buildMultiSelect("status", "Status", statuses);
+  buildMultiSelect("flag", "Flag", [...PRIO_DEFS.map((d) => d.label), FLAG_NONE]); // always shown: flags can be added from the UI
 
   // available years from the PI field (Year/Quarter placement)
   const years = [...new Set(items.filter((it) => it.year != null).map((it) => it.year))].sort();
@@ -1390,12 +1412,16 @@ function initFiltersAndPills(items) {
   });
 }
 
-const FILTER_KEYS = ["domain", "team", "zone", "platform", "status"];
+const FILTER_KEYS = ["domain", "team", "zone", "platform", "status", "flag"];
 function filterContainer(key) { return document.getElementById(`f${key.charAt(0).toUpperCase()}${key.slice(1)}`); }
 
 // Zone is multi-valued (a ticket can impact EMEA and Japan); other fields hold one value.
 function itemFilterValues(it, key) {
   if (key === "zone") return it.zones || [];
+  if (key === "flag") { // always has a value, so "No flag" can be unticked to keep only the flagged topics
+    const v = PRIO_DEFS.filter((d) => it[d.prop]).map((d) => d.label);
+    return v.length ? v : [FLAG_NONE];
+  }
   return it[key] ? [it[key]] : [];
 }
 
@@ -1459,7 +1485,6 @@ function render() {
   const inYear = filtered.filter((it) => it.year === currentYear);
   if (currentView === "year") renderYear(inYear);
   else renderQuarter(inYear);
-  renderPriorities();
 }
 
 // ---- Year view: one card per quarter (quarter comes from the PI field) ----
@@ -1514,6 +1539,7 @@ function renderQuarter(items) {
 }
 
 function renderBoard(columns) {
+  if (groupMode === "lanes") return renderLanes(columns);
   const grid = document.createElement("div");
   grid.className = "board-grid";
   grid.style.gridTemplateColumns = `repeat(${columns.length}, 1fr)`;
@@ -1525,7 +1551,7 @@ function renderBoard(columns) {
 // Same 3-column structure as the former table (Title / UAT start / Go Live),
 // rendered as a soft card; items grouped by status so the status is shown
 // once per group rather than once per item.
-function buildCard({ label, sub, color, items, showShortDesc, inPrio, emptyText }) {
+function buildCard({ label, sub, color, items, showShortDesc }) {
   const card = document.createElement("div");
   card.className = "board-card";
 
@@ -1550,11 +1576,18 @@ function buildCard({ label, sub, color, items, showShortDesc, inPrio, emptyText 
   if (items.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-row";
-    empty.textContent = emptyText || "Nothing planned here.";
+    empty.textContent = "Nothing planned here.";
     card.appendChild(empty);
     return card;
   }
 
+  card.appendChild(buildStatusGroups(items, showShortDesc));
+  return card;
+}
+
+// Items of one card / one swimlane cell, grouped by status (one coloured tag per group)
+function buildStatusGroups(items, showShortDesc) {
+  const frag = document.createDocumentFragment();
   groupByStatus(items).forEach(({ status, its }) => {
     const group = document.createElement("div");
     group.className = "status-group";
@@ -1562,10 +1595,97 @@ function buildCard({ label, sub, color, items, showShortDesc, inPrio, emptyText 
     label2.className = "status-label";
     label2.innerHTML = statusTagHTML(status);
     group.appendChild(label2);
-    its.forEach((it) => group.appendChild(buildItemLine(it, showShortDesc, inPrio)));
-    card.appendChild(group);
+    its.forEach((it) => group.appendChild(buildItemLine(it, showShortDesc)));
+    frag.appendChild(group);
   });
-  return card;
+  return frag;
+}
+
+// ---- Swimlanes: horizontal lanes Domain > Team (same columns as the cards) ----
+const DOMAIN_ORDER = ["Discovery", "Profile & Order", "Zone", "Other"];
+// Lane of an item: Domain, then Team (Zone tickets have no team: their zone is the lane)
+function laneOf(it) {
+  const domain = it.domain || "Other";
+  const team = it.team || (domain === "Zone" ? (it.zone || "No zone") : "No team");
+  return { domain, team };
+}
+function sortedLanes(items) {
+  const map = new Map(); // domain -> Map(team -> items)
+  items.forEach((it) => {
+    const { domain, team } = laneOf(it);
+    if (!map.has(domain)) map.set(domain, new Map());
+    const teams = map.get(domain);
+    if (!teams.has(team)) teams.set(team, []);
+    teams.get(team).push(it);
+  });
+  const lastNames = new Set(["No team", "No zone"]);
+  return [...map.entries()]
+    .sort((a, b) => {
+      const ia = DOMAIN_ORDER.indexOf(a[0]), ib = DOMAIN_ORDER.indexOf(b[0]);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a[0].localeCompare(b[0]);
+    })
+    .map(([domain, teams]) => ({
+      domain,
+      teams: [...teams.entries()]
+        .sort((a, b) => (lastNames.has(a[0]) - lastNames.has(b[0])) || a[0].localeCompare(b[0]))
+        .map(([team, its]) => ({ team, items: its })),
+    }));
+}
+
+function renderLanes(columns) {
+  boardEl.innerHTML = "";
+  const lanes = sortedLanes(columns.flatMap((c) => c.items));
+  if (!lanes.length) {
+    const e = document.createElement("div");
+    e.className = "lanes-empty";
+    e.textContent = "Nothing planned here.";
+    boardEl.appendChild(e);
+    return;
+  }
+  const grid = document.createElement("div");
+  grid.className = "lanes-grid";
+  grid.style.gridTemplateColumns = `150px repeat(${columns.length}, minmax(0, 1fr))`;
+
+  const corner = document.createElement("div");
+  corner.className = "lane-corner";
+  corner.textContent = "Domain › Team";
+  grid.appendChild(corner);
+  columns.forEach((col) => {
+    const head = document.createElement("div");
+    head.className = "card-head";
+    head.style.background = col.color || "var(--card-bg)";
+    head.style.color = col.color ? "#fff" : "var(--color-text)";
+    head.innerHTML = `<span class="label">${escapeHTML(col.label)}</span>${col.sub ? `<span class="sub">${escapeHTML(col.sub)}</span>` : ""}`;
+    const labels = document.createElement("div");
+    labels.className = "col-labels";
+    labels.innerHTML = `<div class="col-title">Title</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div><div class="col-flag"></div>`;
+    const wrap = document.createElement("div");
+    wrap.className = "lane-colhead";
+    wrap.appendChild(head);
+    wrap.appendChild(labels);
+    grid.appendChild(wrap);
+  });
+
+  lanes.forEach(({ domain, teams }) => {
+    const band = document.createElement("div");
+    band.className = "lane-domain";
+    band.textContent = domain;
+    grid.appendChild(band);
+    teams.forEach(({ team }) => {
+      const label = document.createElement("div");
+      label.className = "lane-label";
+      label.textContent = team;
+      grid.appendChild(label);
+      columns.forEach((col) => {
+        const cell = document.createElement("div");
+        cell.className = "lane-cell";
+        const its = col.items.filter((it) => { const l = laneOf(it); return l.domain === domain && l.team === team; });
+        if (its.length) cell.appendChild(buildStatusGroups(its, col.showShortDesc));
+        grid.appendChild(cell);
+      });
+    });
+  });
+  boardEl.appendChild(grid);
 }
 
 // Status -> colour family (matched case-insensitively). Unknown statuses get a neutral outline tag.
@@ -1609,22 +1729,20 @@ function sortByGoLive(items) {
   });
 }
 
-function buildItemLine(item, showShortDesc, inPrio) {
+function buildItemLine(item, showShortDesc) {
   const row = document.createElement("div");
   row.className = "item-line";
   const active = PRIO_DEFS.filter((d) => item[d.prop]);
-  const chips = !inPrio && active.length
-    ? `<span class="prio-chips">${active.map((d) => `<span class="prio-chip">${d.label}</span>`).join("")}</span>` : "";
+  const tone = item.prioDomain ? " on on-domain" : item.prioSquad ? " on on-squad" : ""; // Domain (violet) overlaps Squad (blue)
   const tip = active.length ? `${active.map((d) => d.label).join(" + ")} — click to edit` : "Flag as priority";
   row.innerHTML = `
     <div class="col-title">
       <span>${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a>` : escapeHTML(item.title)}</span>
       ${showShortDesc && item.shortDesc ? `<span class="il-desc">${escapeHTML(item.shortDesc)}</span>` : ""}
-      ${chips}
     </div>
     <div class="col-uat">${item.uat ? fmtDateLong(item.uat) : "—"}</div>
     <div class="col-golive">${item.golive ? fmtDateLong(item.golive) : "—"}</div>
-    <div class="col-flag"><button type="button" class="flag-btn${active.length ? " on" : ""}" data-key="${escapeHTML(item.key)}" title="${escapeHTML(tip)}" aria-label="${escapeHTML(tip)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg></button></div>
+    <div class="col-flag"><button type="button" class="flag-btn${tone}" data-key="${escapeHTML(item.key)}" title="${escapeHTML(tip)}" aria-label="${escapeHTML(tip)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg></button></div>
   `;
   row.querySelector(".flag-btn").addEventListener("click", (e) => {
     e.stopPropagation();
@@ -1640,54 +1758,21 @@ function buildItemLine(item, showShortDesc, inPrio) {
 // A new import starts again from the JIRA labels.
 // ---------------------------------------------------------------------
 const PRIO_DEFS = [
-  { prop: "prioSquad",  label: "Prio Squad",  color: "#8a5a33" },
-  { prop: "prioDomain", label: "Prio Domain", color: "#3e2a1e" },
+  { prop: "prioSquad",  label: "Prio Squad",  color: "#2f6bd7" }, // blue
+  { prop: "prioDomain", label: "Prio Domain", color: "#7a3fd1" }, // violet (overlaps Prio Squad)
 ];
-
-function renderPriorities() {
-  const el = document.getElementById("prioSection");
-  const inPeriod = periodItems(); // same period + filters as the board
-  const cols = PRIO_DEFS.map((d) => ({ d, items: inPeriod.filter((it) => it[d.prop]) }));
-  if (!cols.some((c) => c.items.length)) {
-    el.classList.remove("visible");
-    el.innerHTML = "";
-    return;
-  }
-  const edited = allItems.some((it) => PRIO_DEFS.some((d) => it[d.prop] !== it.prioInit[d.prop]));
-  el.innerHTML = `
-    <div class="prio-head">
-      <h2>Priorities</h2>
-      <span class="prio-note">Epics flagged ${PRIO_DEFS.map((d) => d.label).join(" / ")} for the period and filters shown. Temporary view: flags are not saved and not sent to JIRA.</span>
-      ${edited ? `<button type="button" class="prio-reset" id="prioReset">Reset to JIRA labels</button>` : ""}
-    </div>`;
-  const grid = document.createElement("div");
-  grid.className = "board-grid";
-  grid.style.gridTemplateColumns = `repeat(${cols.length}, 1fr)`;
-  cols.forEach(({ d, items }) => grid.appendChild(buildCard({
-    label: d.label, sub: `${items.length} epic${items.length === 1 ? "" : "s"}`, color: d.color,
-    items, showShortDesc: false, inPrio: true, emptyText: `No ${d.label} epic in this view.`,
-  })));
-  el.appendChild(grid);
-  el.classList.add("visible");
-  const reset = document.getElementById("prioReset");
-  if (reset) reset.addEventListener("click", () => {
-    allItems.forEach((it) => PRIO_DEFS.forEach((d) => { it[d.prop] = it.prioInit[d.prop]; }));
-    closePrioMenu();
-    render();
-  });
-}
+const FLAG_NONE = "No flag";
 
 // Small popover with the two checkboxes, shared by every flag button
 const prioMenu = document.createElement("div");
 prioMenu.className = "prio-menu";
 prioMenu.innerHTML = `<div class="pm-title">Priority flags</div>` +
-  PRIO_DEFS.map((d) => `<label><input type="checkbox" data-prop="${d.prop}"> ${d.label}</label>`).join("");
+  PRIO_DEFS.map((d) => `<label><input type="checkbox" data-prop="${d.prop}"> <span class="pm-dot" style="background:${d.color}"></span> ${d.label}</label>`).join("");
 document.body.appendChild(prioMenu);
-let prioMenuItem = null, prioMenuInPrio = false;
+let prioMenuItem = null;
 
-function findFlagBtn(key, preferPrio) {
-  const all = [...document.querySelectorAll(".flag-btn")].filter((b) => b.dataset.key === key);
-  return all.find((b) => !!b.closest("#prioSection") === preferPrio) || all[0] || null;
+function findFlagBtn(key) {
+  return [...document.querySelectorAll(".flag-btn")].find((b) => b.dataset.key === key) || null;
 }
 function placePrioMenu(btn) {
   const r = btn.getBoundingClientRect();
@@ -1703,7 +1788,6 @@ function closePrioMenu() { prioMenu.classList.remove("open"); prioMenuItem = nul
 function togglePrioMenu(item, btn) {
   if (prioMenu.classList.contains("open") && prioMenuItem === item) return closePrioMenu();
   prioMenuItem = item;
-  prioMenuInPrio = !!btn.closest("#prioSection");
   prioMenu.querySelectorAll("input").forEach((cb) => { cb.checked = !!item[cb.dataset.prop]; });
   placePrioMenu(btn);
 }
@@ -1712,11 +1796,10 @@ prioMenu.addEventListener("change", (e) => {
   const cb = e.target.closest("input[data-prop]");
   if (!cb || !prioMenuItem) return;
   const item = prioMenuItem;
-  const inPrio = prioMenuInPrio;
-  const before = findFlagBtn(item.key, inPrio)?.getBoundingClientRect().top;
+  const before = findFlagBtn(item.key)?.getBoundingClientRect().top;
   item[cb.dataset.prop] = cb.checked;
-  render(); // the Priorities section can appear/disappear above the board: keep the clicked row where it was
-  const btn = findFlagBtn(item.key, inPrio);
+  render(); // may re-filter (Flag filter): keep the clicked row where it was when it is still displayed
+  const btn = findFlagBtn(item.key);
   if (btn && before != null) window.scrollBy(0, btn.getBoundingClientRect().top - before);
   if (btn) placePrioMenu(btn); else closePrioMenu();
 });
