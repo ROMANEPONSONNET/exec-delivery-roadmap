@@ -2,5 +2,8 @@
 .htaccess
 .htpasswd
 
+# Unencrypted app source: only the encrypted index.html is published
+roadmap.source.html
+
 # Local Claude config
 .claude/
