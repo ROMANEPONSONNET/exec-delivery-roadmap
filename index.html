@@ -103,6 +103,15 @@
   .ms-option.unavailable { color: #b9b3aa; cursor: not-allowed; }
   .nd-toggle { display: none; align-items: center; gap: 8px; font-size: 14px; color: var(--color-text); cursor: pointer; }
   .nd-toggle input { margin: 0; }
+  .chk-toggle {
+    display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 14px; font-size: 14px;
+    border: 1px solid var(--color-border); border-radius: 10px; background: #fff; cursor: pointer; white-space: nowrap;
+  }
+  .chk-toggle input { margin: 0; width: 16px; height: 16px; accent-color: var(--pill-active-bg); }
+  .chk-toggle:has(input:checked) { border-color: var(--pill-active-bg); background: #f6ece2; font-weight: 600; }
+  .chk-flag { width: 14px; height: 14px; flex: 0 0 auto; margin-right: -2px; color: #7a3fd1; }
+  .chk-flag path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .chk-toggle:has(input:checked) .chk-flag path { fill: currentColor; }
 
   .export-wrap { position: relative; }
   #exportBtn {
@@ -139,14 +148,8 @@
   #board { display: none; }
   #board.visible { display: block; }
 
-  /* ---- Board: soft "digital" cards (Year = quarters, Quarter = months) ----
-     Same 3-column structure as before (Title / UAT start / Go Live),
-     just without heavy table borders. Items are grouped by status,
-     so the status is shown once per group, not once per item. */
-  .board-grid { display: grid; gap: 16px; }
-  .board-card { border: 1px solid var(--color-border); border-radius: 14px; overflow: clip; background: #fff; }
-  .card-sticky { position: sticky; top: 0; z-index: 5; }
-
+  /* ---- Column headers (Year = quarters, Quarter = months): Title / UAT start / Go Live.
+     Items are grouped by status, so the status is shown once per group, not once per item. */
   .card-head { padding: 12px 16px 10px; min-height: 56px; position: relative; }
   .card-head .label { font-size: 18px; font-weight: 700; display: block; }
   .card-head .sub { font-size: 12px; opacity: .85; }
@@ -194,13 +197,18 @@
 
   .prio-menu .pm-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 
-  /* ---- Swimlanes: Domain > Team rows, same columns as the cards (quarters / months) ---- */
+  /* ---- Swimlanes: Platform (.com, then App) > Domain > Team rows, columns = quarters / months ---- */
   .lanes-grid { display: grid; align-items: stretch; }
   .lane-corner, .lane-colhead { position: sticky; top: 0; z-index: 6; }
   .lane-corner { background: var(--card-bg); border-radius: 12px 0 0 0; padding: 12px 12px 0; font-size: 11px; color: var(--color-muted); display: flex; align-items: flex-end; }
   .lane-colhead:last-of-type { border-radius: 0 12px 0 0; overflow: clip; }
   .lane-domain { grid-column: 1 / -1; background: var(--grad-dark); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .02em; padding: 8px 14px; margin-top: 14px; border-radius: 10px 10px 0 0; }
-  .lane-domain:first-of-type { margin-top: 0; }
+  .lane-platform {
+    grid-column: 1 / -1; font-size: 20px; font-weight: 700; color: var(--grad-dark);
+    padding: 30px 2px 8px; margin-bottom: 10px; border-bottom: 2px solid var(--pill-active-bg);
+  }
+  .lane-platform.first { padding-top: 16px; }
+  .lane-platform + .lane-domain { margin-top: 0; }
   .lane-label { background: var(--card-bg); border: 1px solid var(--color-border); border-top: none; padding: 10px 12px; font-size: 12.5px; font-weight: 600; word-break: break-word; }
   .lane-cell { background: #fff; border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); min-width: 0; }
   .lane-cell:nth-child(n) { border-left: 0; }
@@ -208,16 +216,12 @@
   .lane-cell .status-group + .status-group { margin-top: 2px; }
   .lanes-empty { padding: 24px; font-size: 13px; color: var(--color-muted); font-style: italic; }
 
-  .empty-row { padding: 14px 16px; font-size: 12px; color: var(--color-muted); font-style: italic; }
-
 
   /* ---- Vertical printable (release-note style) ---- */
   @media print {
     #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu { display: none !important; }
     body { padding: 0; }
     .wrap { max-width: none; padding: 0 10mm; }
-    .board-grid { break-inside: avoid; }
-    .board-card { break-inside: avoid; }
   }
 </style>
 </head>
@@ -258,6 +262,7 @@
       <div class="multiselect" id="fPlatform"></div>
       <div class="multiselect" id="fStatus"></div>
       <div class="multiselect" id="fFlag"></div>
+      <label class="chk-toggle"><input type="checkbox" id="flaggedOnly"><svg class="chk-flag" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg>Hide unflagged topics</label>
     </div>
   </div>
 
@@ -282,13 +287,6 @@
     <div class="nav-group" id="quarterGroup" style="display:none;">
       <span class="nav-label">Quarter</span>
       <div class="pill-group" id="quarterPills"></div>
-    </div>
-    <div class="nav-group">
-      <span class="nav-label">Group by</span>
-      <div class="pill-group" id="groupToggle">
-        <button data-group="none" class="active">None</button>
-        <button data-group="lanes">Domain › Team</button>
-      </div>
     </div>
     <div class="export-wrap">
       <button id="exportBtn">↓ Export ▾</button>
@@ -722,15 +720,6 @@ document.addEventListener("click", () => {
   document.querySelectorAll(".ms-panel.open").forEach((p) => p.classList.remove("open"));
 });
 
-let groupMode = "none"; // "none" | "lanes"
-document.getElementById("groupToggle").addEventListener("click", (e) => {
-  const btn = e.target.closest("button[data-group]");
-  if (!btn) return;
-  groupMode = btn.dataset.group;
-  document.querySelectorAll("#groupToggle button").forEach((b) => b.classList.toggle("active", b === btn));
-  render();
-});
-
 document.getElementById("ndCheck").addEventListener("change", (e) => {
   showNotDetailed = e.target.checked;
   render();
@@ -902,6 +891,7 @@ function activeFiltersSummary() {
     }
   });
   if (searchQuery) parts.push(`Search: "${document.getElementById("searchInput").value.trim()}"`);
+  if (hideUnflagged) parts.push("Flagged topics only");
   return parts.join(" · ");
 }
 function exportNothing() {
@@ -916,9 +906,9 @@ function exportNothing() {
 // =====================================================================
 
 const PPT = {
-  W: 13.333, H: 7.5, M: 0.4, TITLE_W: 4.0, ROW_H: 0.33, GRP_H: 0.25, DOM_H: 0.28,
+  W: 13.333, H: 7.5, M: 0.4, TITLE_W: 4.0, ROW_H: 0.33, GRP_H: 0.25, DOM_H: 0.28, PLAT_H: 0.34,
   BUILD: "9DBDE8", UAT: "B79CE0", STAR: "F2B01E", STAR_LINE: "8A5A00",
-  INK: "1A1A1A", MUTED: "6B6B6B", BROWN: "3E2A1E", BAND: "F3EDE4", GRID: "E3DCD2", TODAY: "C0392B",
+  INK: "1A1A1A", MUTED: "6B6B6B", BROWN: "3E2A1E", DOMAIN: "8A5A33", BAND: "F3EDE4", GRID: "E3DCD2", TODAY: "C0392B",
 };
 const EMU = (inches) => Math.round(inches * 914400);
 const hex6 = (c) => c.replace("#", "").toUpperCase();
@@ -994,43 +984,55 @@ function truncate(str, n) {
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
 
-// Swimlanes = Domain > Team (same lanes as the board; Zone tickets, which have no team, use their zone)
+// Swimlanes = Platform (.com, then App) > Domain > Team, same lanes as the board
+// (Zone tickets, which have no team, use their zone)
 function groupEntries(entries) {
   const byItem = new Map(entries.map((e) => [e.it, e]));
   const sortKey = (e) => {
     const d = e.it.uat || e.it.golive;
     return d ? d.getTime() : Infinity;
   };
-  return sortedLanes(entries.map((e) => e.it)).map(({ domain, teams }) => ({
-    name: domain,
-    teams: teams.map(({ team, items }) => ({
-      name: team,
-      entries: items.map((it) => byItem.get(it)).sort((a, b) => sortKey(a) - sortKey(b) || a.it.title.localeCompare(b.it.title)),
+  return sortedSections(entries.map((e) => e.it)).map(({ platform, lanes }) => ({
+    name: platform,
+    domains: lanes.map(({ domain, teams }) => ({
+      name: domain,
+      teams: teams.map(({ team, items }) => ({
+        name: team,
+        entries: items.map((it) => byItem.get(it)).sort((a, b) => sortKey(a) - sortKey(b) || a.it.title.localeCompare(b.it.title)),
+      })),
     })),
   }));
 }
 
-function paginateRows(groups, topY, bottomY) {
+function paginateRows(sections, topY, bottomY) {
   const pages = [];
-  let page = [], y = topY, curD = null, curT = null;
+  let page = [], y = topY, curP = null, curD = null, curT = null;
   const seen = new Set();
-  const flush = () => { if (page.length) pages.push(page); page = []; y = topY; curD = null; curT = null; };
-  groups.forEach((d) => {
-    d.teams.forEach((t) => {
-      const tKey = d.name + "|" + t.name;
-      t.entries.forEach((e) => {
-        const need = (curD !== d.name ? PPT.DOM_H : 0) + (curT !== tKey ? PPT.GRP_H : 0) + PPT.ROW_H;
-        if (y + need > bottomY && page.length) flush();
-        if (curD !== d.name) {
-          page.push({ type: "domain", name: d.name, cont: seen.has(d.name), y });
-          seen.add(d.name); curD = d.name; y += PPT.DOM_H;
-        }
-        if (curT !== tKey) {
-          page.push({ type: "team", name: t.name, cont: seen.has(tKey), y });
-          seen.add(tKey); curT = tKey; y += PPT.GRP_H;
-        }
-        page.push({ type: "item", entry: e, y });
-        y += PPT.ROW_H;
+  const flush = () => { if (page.length) pages.push(page); page = []; y = topY; curP = null; curD = null; curT = null; };
+  sections.forEach((p) => {
+    const pKey = "P|" + p.name;
+    p.domains.forEach((d) => {
+      const dKey = pKey + "|" + d.name;
+      d.teams.forEach((t) => {
+        const tKey = dKey + "|" + t.name;
+        t.entries.forEach((e) => {
+          const need = (curP !== pKey ? PPT.PLAT_H : 0) + (curD !== dKey ? PPT.DOM_H : 0) + (curT !== tKey ? PPT.GRP_H : 0) + PPT.ROW_H;
+          if (y + need > bottomY && page.length) flush();
+          if (curP !== pKey) {
+            page.push({ type: "platform", name: p.name, cont: seen.has(pKey), y });
+            seen.add(pKey); curP = pKey; y += PPT.PLAT_H;
+          }
+          if (curD !== dKey) {
+            page.push({ type: "domain", name: d.name, cont: seen.has(dKey), y });
+            seen.add(dKey); curD = dKey; y += PPT.DOM_H;
+          }
+          if (curT !== tKey) {
+            page.push({ type: "team", name: t.name, cont: seen.has(tKey), y });
+            seen.add(tKey); curT = tKey; y += PPT.GRP_H;
+          }
+          page.push({ type: "item", entry: e, y });
+          y += PPT.ROW_H;
+        });
       });
     });
   });
@@ -1039,7 +1041,7 @@ function paginateRows(groups, topY, bottomY) {
 }
 
 function buildTimelinePptx({ items, period, subtitle, now }) {
-  const { W, H, M, TITLE_W, ROW_H, GRP_H, DOM_H } = PPT;
+  const { W, H, M, TITLE_W, ROW_H, GRP_H, DOM_H, PLAT_H } = PPT;
   const X0 = M + TITLE_W + 0.1;
   const TL_W = W - M - X0;
   const BOTTOM = H - 0.5;
@@ -1066,7 +1068,7 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
     const s = makeSlide();
     const isTimeline = pg.kind === "timeline";
     const lastRow = pg.rows[pg.rows.length - 1];
-    const rowsBottom = lastRow.y + (lastRow.type === "domain" ? DOM_H : lastRow.type === "team" ? GRP_H : ROW_H);
+    const rowsBottom = lastRow.y + ({ platform: PLAT_H, domain: DOM_H, team: GRP_H }[lastRow.type] || ROW_H);
 
     addText(s, { name: "Title", x: M, y: 0.26, w: 7.6, h: 0.5, paras: [{ runs: [{ t: `Roadmap ${period.label}` + (isTimeline ? "" : " — Not detailed planned"), sz: 22, b: true, color: PPT.BROWN }] }] });
     addText(s, { name: "Subtitle", x: M, y: 0.76, w: W - 2 * M, h: 0.3, paras: [{ runs: [{ t: subtitle, sz: 10, color: PPT.MUTED }] }] });
@@ -1119,8 +1121,12 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
     }
 
     pg.rows.forEach((row) => {
+      if (row.type === "platform") {
+        addShape(s, { name: "Platform " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: PLAT_H - 0.04, fill: PPT.BROWN, paras: [{ runs: [{ t: " " + row.name + (row.cont ? " (cont.)" : ""), sz: 12, b: true, color: "FFFFFF" }] }] });
+        return;
+      }
       if (row.type === "domain") {
-        addShape(s, { name: "Domain " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: DOM_H - 0.04, fill: PPT.BROWN, paras: [{ runs: [{ t: "  " + row.name + (row.cont ? " (cont.)" : ""), sz: 10, b: true, color: "FFFFFF" }] }] });
+        addShape(s, { name: "Domain " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: DOM_H - 0.04, fill: PPT.DOMAIN, paras: [{ runs: [{ t: "  " + row.name + (row.cont ? " (cont.)" : ""), sz: 10, b: true, color: "FFFFFF" }] }] });
         return;
       }
       if (row.type === "team") {
@@ -1281,16 +1287,19 @@ function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
   body.push(para(run(`Release note — ${period.label}`), "Title"));
   body.push(para(run(subtitle), "Subtitle"));
 
-  // Same swimlanes as the board: Domain (Heading 1) > Team (Heading 2)
+  // Same swimlanes as the board: Platform (Heading 1) > Domain (Heading 2) > Team (Heading 3)
   const byGolive = (a, b) => {
     const ta = a.golive ? a.golive.getTime() : Infinity, tb = b.golive ? b.golive.getTime() : Infinity;
     return ta - tb || a.title.localeCompare(b.title);
   };
-  sortedLanes(items).forEach(({ domain, teams }) => {
+  sortedSections(items).forEach(({ platform, lanes }) => {
+   const pTotal = lanes.reduce((n, d) => n + d.teams.reduce((m, t) => m + t.items.length, 0), 0);
+   body.push(para(run(`${platform} (${pTotal})`), "Heading1"));
+   lanes.forEach(({ domain, teams }) => {
     const total = teams.reduce((n, t) => n + t.items.length, 0);
-    body.push(para(run(`${domain} (${total})`), "Heading1"));
+    body.push(para(run(`${domain} (${total})`), "Heading2"));
     teams.forEach(({ team, items: list }) => {
-      body.push(para(run(`${team} (${list.length})`), "Heading2"));
+      body.push(para(run(`${team} (${list.length})`), "Heading3"));
       list.slice().sort(byGolive).forEach((it) => {
         const dates = (it.uat || it.golive)
           ? `UAT ${it.uat ? fmtDateLong(it.uat) : "—"} → Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
@@ -1303,6 +1312,7 @@ function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
         body.push(para(titleRun + metaRun, "ListParagraph", `<w:numPr><w:ilvl w:val="0"/><w:numId w:val="1"/></w:numPr>`));
       });
     });
+   });
   });
   body.push(para(run(`Generated locally from a JIRA export — ${generated}`, { color: "8A8A8A", sz: 16 })));
 
@@ -1318,6 +1328,7 @@ function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
     `<w:style w:type="paragraph" w:styleId="Subtitle"><w:name w:val="Subtitle"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="240"/></w:pPr><w:rPr><w:color w:val="6B6B6B"/><w:sz w:val="22"/></w:rPr></w:style>` +
     `<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="2" w:color="C08A5C"/></w:pBdr><w:spacing w:before="320" w:after="140"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="3E2A1E"/><w:sz w:val="28"/></w:rPr></w:style>` +
     `<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="80"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="8A5A33"/><w:sz w:val="24"/></w:rPr></w:style>` +
+    `<w:style w:type="paragraph" w:styleId="Heading3"><w:name w:val="heading 3"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="160" w:after="60"/><w:outlineLvl w:val="2"/></w:pPr><w:rPr><w:b/><w:color w:val="6B6B6B"/><w:sz w:val="22"/></w:rPr></w:style>` +
     `<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="140"/><w:ind w:left="720"/></w:pPr></w:style>` +
     `<w:style w:type="character" w:styleId="Hyperlink"><w:name w:val="Hyperlink"/><w:rPr><w:color w:val="8A5A33"/><w:u w:val="single"/></w:rPr></w:style>` +
     `</w:styles>`;
@@ -1434,7 +1445,15 @@ document.getElementById("searchInput").addEventListener("input", (e) => {
   render();
 });
 
+// "Hide unflagged topics": keeps only Prio Squad / Prio Domain items, on the board and in every export
+let hideUnflagged = false;
+document.getElementById("flaggedOnly").addEventListener("change", (e) => {
+  hideUnflagged = e.target.checked;
+  render();
+});
+
 function passesFilters(it, skipKey) {
+  if (hideUnflagged && !PRIO_DEFS.some((d) => it[d.prop])) return false;
   if (searchQuery && !normText(it.title).includes(searchQuery) && !normText(it.key).includes(searchQuery)) return false;
   for (const key of FILTER_KEYS) {
     if (key === skipKey || !filterTotal[key]) continue;
@@ -1500,7 +1519,7 @@ function renderYear(items) {
       showShortDesc: false,
     });
   }
-  renderBoard(columns);
+  renderLanes(columns);
 }
 
 // ---- Quarter view: one card per month (kept same structure, now a card too) ----
@@ -1535,57 +1554,10 @@ function renderQuarter(items) {
       showShortDesc: true,
     });
   }
-  renderBoard(columns);
+  renderLanes(columns);
 }
 
-function renderBoard(columns) {
-  if (groupMode === "lanes") return renderLanes(columns);
-  const grid = document.createElement("div");
-  grid.className = "board-grid";
-  grid.style.gridTemplateColumns = `repeat(${columns.length}, 1fr)`;
-  columns.forEach((col) => grid.appendChild(buildCard(col)));
-  boardEl.innerHTML = "";
-  boardEl.appendChild(grid);
-}
-
-// Same 3-column structure as the former table (Title / UAT start / Go Live),
-// rendered as a soft card; items grouped by status so the status is shown
-// once per group rather than once per item.
-function buildCard({ label, sub, color, items, showShortDesc }) {
-  const card = document.createElement("div");
-  card.className = "board-card";
-
-  const head = document.createElement("div");
-  head.className = "card-head";
-  head.style.background = color || "var(--card-bg)";
-  head.style.color = color ? "#fff" : "var(--color-text)";
-  head.innerHTML = `
-    <span class="label">${escapeHTML(label)}</span>
-    ${sub ? `<span class="sub">${escapeHTML(sub)}</span>` : ""}
-  `;
-  const sticky = document.createElement("div");
-  sticky.className = "card-sticky";
-  sticky.appendChild(head);
-
-  const colLabels = document.createElement("div");
-  colLabels.className = "col-labels";
-  colLabels.innerHTML = `<div class="col-title">Title</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div><div class="col-flag"></div>`;
-  sticky.appendChild(colLabels);
-  card.appendChild(sticky);
-
-  if (items.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-row";
-    empty.textContent = "Nothing planned here.";
-    card.appendChild(empty);
-    return card;
-  }
-
-  card.appendChild(buildStatusGroups(items, showShortDesc));
-  return card;
-}
-
-// Items of one card / one swimlane cell, grouped by status (one coloured tag per group)
+// Items of one swimlane cell, grouped by status (one coloured tag per group)
 function buildStatusGroups(items, showShortDesc) {
   const frag = document.createDocumentFragment();
   groupByStatus(items).forEach(({ status, its }) => {
@@ -1601,7 +1573,23 @@ function buildStatusGroups(items, showShortDesc) {
   return frag;
 }
 
-// ---- Swimlanes: horizontal lanes Domain > Team (same columns as the cards) ----
+// ---- Swimlanes: Platform section (.com, then App) > Domain > Team ----
+const PLATFORM_ORDER = [".com", "App"];
+const PLATFORM_NONE = "Other"; // e.g. Zone tickets, which carry no tribe
+const platformOf = (it) => it.platform || PLATFORM_NONE;
+function sortedSections(items) {
+  const map = new Map(); // platform -> items
+  items.forEach((it) => {
+    const p = platformOf(it);
+    if (!map.has(p)) map.set(p, []);
+    map.get(p).push(it);
+  });
+  const rank = (p) => { const i = PLATFORM_ORDER.indexOf(p); return i !== -1 ? i : p === PLATFORM_NONE ? 99 : 50; };
+  return [...map.entries()]
+    .sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0]))
+    .map(([platform, its]) => ({ platform, lanes: sortedLanes(its) }));
+}
+
 const DOMAIN_ORDER = ["Discovery", "Profile & Order", "Zone", "Other"];
 // Lane of an item: Domain, then Team (Zone tickets have no team: their zone is the lane)
 function laneOf(it) {
@@ -1634,8 +1622,8 @@ function sortedLanes(items) {
 
 function renderLanes(columns) {
   boardEl.innerHTML = "";
-  const lanes = sortedLanes(columns.flatMap((c) => c.items));
-  if (!lanes.length) {
+  const sections = sortedSections(columns.flatMap((c) => c.items));
+  if (!sections.length) {
     const e = document.createElement("div");
     e.className = "lanes-empty";
     e.textContent = "Nothing planned here.";
@@ -1666,22 +1654,32 @@ function renderLanes(columns) {
     grid.appendChild(wrap);
   });
 
-  lanes.forEach(({ domain, teams }) => {
-    const band = document.createElement("div");
-    band.className = "lane-domain";
-    band.textContent = domain;
-    grid.appendChild(band);
-    teams.forEach(({ team }) => {
-      const label = document.createElement("div");
-      label.className = "lane-label";
-      label.textContent = team;
-      grid.appendChild(label);
-      columns.forEach((col) => {
-        const cell = document.createElement("div");
-        cell.className = "lane-cell";
-        const its = col.items.filter((it) => { const l = laneOf(it); return l.domain === domain && l.team === team; });
-        if (its.length) cell.appendChild(buildStatusGroups(its, col.showShortDesc));
-        grid.appendChild(cell);
+  sections.forEach(({ platform, lanes }, si) => {
+    const title = document.createElement("div");
+    title.className = "lane-platform" + (si === 0 ? " first" : "");
+    title.textContent = platform;
+    grid.appendChild(title);
+    lanes.forEach(({ domain, teams }) => {
+      const band = document.createElement("div");
+      band.className = "lane-domain";
+      band.textContent = domain;
+      grid.appendChild(band);
+      teams.forEach(({ team }) => {
+        const label = document.createElement("div");
+        label.className = "lane-label";
+        label.textContent = team;
+        grid.appendChild(label);
+        columns.forEach((col) => {
+          const cell = document.createElement("div");
+          cell.className = "lane-cell";
+          const its = col.items.filter((it) => {
+            if (platformOf(it) !== platform) return false;
+            const l = laneOf(it);
+            return l.domain === domain && l.team === team;
+          });
+          if (its.length) cell.appendChild(buildStatusGroups(its, col.showShortDesc));
+          grid.appendChild(cell);
+        });
       });
     });
   });
