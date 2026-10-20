@@ -22,34 +22,7 @@
 
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: -apple-system, "Segoe UI", Arial, sans-serif; }
-  body.page-locked .wrap { display: none; }
-  body.page-unlocked #pageLock { display: none; }
   .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
-
-  #pageLock {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #f8f2ea 0%, #efe6dc 100%); z-index: 2000;
-  }
-  .auth-box {
-    width: min(92vw, 420px); background: rgba(255,255,255,0.9); border: 1px solid var(--color-border);
-    border-radius: 18px; box-shadow: 0 18px 50px rgba(23, 19, 15, 0.12); padding: 28px 24px;
-  }
-  .auth-box h2 { margin: 0 0 8px; font-size: 26px; }
-  .auth-box p { margin: 0 0 18px; font-size: 14px; color: var(--color-muted); }
-  .auth-field { display: grid; gap: 8px; margin-bottom: 14px; }
-  .auth-field label { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-muted); }
-  .auth-field input {
-    width: 100%; border: 1px solid var(--color-border); border-radius: 10px; height: 42px; padding: 0 12px;
-    font-size: 14px; font-family: inherit; background: #fff; color: var(--color-text);
-  }
-  .auth-box button {
-    width: 100%; border: none; border-radius: 10px; background: var(--grad-dark); color: #fff; font-weight: 700;
-    height: 42px; cursor: pointer; font-family: inherit; margin-top: 8px;
-  }
-  .auth-error {
-    margin-top: 12px; min-height: 18px; font-size: 13px; color: #a13327; display: none;
-  }
-  .auth-error.visible { display: block; }
 
   header.top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 14px; }
   h1 { font-size: 26px; margin: 0; text-decoration: underline; text-underline-offset: 6px; }
@@ -203,12 +176,37 @@
   .col-title a:hover { text-decoration-color: var(--pill-active-bg); }
   .item-line .col-uat, .item-line .col-golive { color: var(--color-muted); }
 
+  .col-flag { flex: 0 0 26px; text-align: right; }
+  .flag-btn { border: none; background: none; cursor: pointer; padding: 0 2px; line-height: 1; color: var(--color-muted); opacity: .35; vertical-align: middle; }
+  .flag-btn svg { width: 13px; height: 13px; display: block; margin-left: auto; }
+  .flag-btn svg path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .flag-btn.on { color: var(--pill-active-bg); opacity: 1; }
+  .flag-btn.on svg path { fill: currentColor; }
+  .item-line:hover .flag-btn, .flag-btn:focus-visible { opacity: 1; }
+  .prio-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .prio-chip { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 1px 7px; border-radius: 999px; background: #f3e5d6; color: #7a4a22; }
+  .prio-menu {
+    display: none; position: absolute; z-index: 60; background: #fff; border: 1px solid var(--color-border);
+    border-radius: 10px; box-shadow: 0 8px 24px rgba(23,19,15,.14); padding: 8px 12px; font-size: 12.5px;
+  }
+  .prio-menu.open { display: block; }
+  .prio-menu .pm-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--color-muted); margin-bottom: 4px; }
+  .prio-menu label { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; white-space: nowrap; }
+
+  #prioSection { display: none; margin-bottom: 22px; }
+  #prioSection.visible { display: block; }
+  .prio-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 0 10px; }
+  .prio-head h2 { font-size: 18px; margin: 0; }
+  .prio-head .prio-note { font-size: 12px; color: var(--color-muted); }
+  .prio-head .prio-reset { border: 1px solid var(--color-border); background: #fff; border-radius: 999px; font-size: 11.5px; padding: 3px 12px; cursor: pointer; font-family: inherit; color: var(--color-text); }
+  .prio-head .prio-reset:hover { border-color: var(--pill-active-bg); }
+
   .empty-row { padding: 14px 16px; font-size: 12px; color: var(--color-muted); font-style: italic; }
 
 
   /* ---- Vertical printable (release-note style) ---- */
   @media print {
-    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row { display: none !important; }
+    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu, .prio-reset { display: none !important; }
     body { padding: 0; }
     .wrap { max-width: none; padding: 0 10mm; }
     .board-grid { break-inside: avoid; }
@@ -216,23 +214,7 @@
   }
 </style>
 </head>
-<body class="page-locked">
-<div id="pageLock" aria-live="polite">
-  <form class="auth-box" id="authForm">
-    <h2>Accès protégé</h2>
-    <p>Connectez-vous pour afficher la roadmap.</p>
-    <div class="auth-field">
-      <label for="authUser">Identifiant</label>
-      <input id="authUser" name="username" type="text" autocomplete="username" required>
-    </div>
-    <div class="auth-field">
-      <label for="authPass">Mot de passe</label>
-      <input id="authPass" name="password" type="password" autocomplete="current-password" required>
-    </div>
-    <button type="submit">Accéder</button>
-    <div class="auth-error" id="authError">Identifiant ou mot de passe incorrect.</div>
-  </form>
-</div>
+<body>
 <div class="wrap">
   <header class="top">
     <h1>Executive delivery roadmap</h1>
@@ -304,49 +286,11 @@
     </div>
   </div>
 
+  <div id="prioSection"></div>
   <div id="board"></div>
 </div>
 
 <script>
-const PAGE_CREDENTIALS = {
-  username: "romane",
-  password: "DeliveryRoadmap1234"
-};
-
-const authForm = document.getElementById("authForm");
-const authError = document.getElementById("authError");
-const authUser = document.getElementById("authUser");
-const authPass = document.getElementById("authPass");
-
-function unlockPage() {
-  document.body.classList.remove("page-locked");
-  document.body.classList.add("page-unlocked");
-  sessionStorage.setItem("roadmapAuth", "ok");
-}
-
-function showAuthError() {
-  authError.classList.add("visible");
-}
-
-if (sessionStorage.getItem("roadmapAuth") === "ok") {
-  unlockPage();
-}
-
-authForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const username = authUser.value.trim();
-  const password = authPass.value;
-
-  if (username === PAGE_CREDENTIALS.username && password === PAGE_CREDENTIALS.password) {
-    unlockPage();
-    return;
-  }
-
-  authError.classList.add("visible");
-  authPass.value = "";
-  authPass.focus();
-});
-
 /*
  * Quarterly roadmap — local prototype built from JIRA CSV exports.
  * No external dependency, 100% client-side.
@@ -448,7 +392,8 @@ function handleFiles(files) {
         return;
       }
 
-      fileInfo.textContent = `${files.map((f) => f.name).join(", ")} — ${allItems.length} item(s) loaded${noPI ? ` — ${noPI} row(s) ignored (PI missing or invalid)` : ""}`;
+      const nSquad = allItems.filter((it) => it.prioSquad).length, nDomain = allItems.filter((it) => it.prioDomain).length;
+      fileInfo.textContent = `${files.map((f) => f.name).join(", ")} — ${allItems.length} item(s) loaded${noPI ? ` — ${noPI} row(s) ignored (PI missing or invalid)` : ""} — Prio Squad: ${nSquad}, Prio Domain: ${nDomain}`;
       initFiltersAndPills(allItems);
       document.getElementById("toolbar").classList.add("visible");
       document.getElementById("pillsRow").classList.add("visible");
@@ -495,6 +440,7 @@ function mapRowsToItems(rows, fileName) {
     throw new Error(`${fileName}: expected the JIRA export layout (at least columns A to I), found ${rows.length ? rows[0].length : 0} column(s).`);
   }
   const idx = COL;
+  const { zoneCols, labelCols } = classifyTrailingColumns(rows[0]);
 
   const items = [];
   for (let r = 1; r < rows.length; r++) {
@@ -512,10 +458,15 @@ function mapRowsToItems(rows, fileName) {
     let zones = parsed.zone ? [parsed.zone] : [];
     if (domain !== "Zone") {
       // Impacted Zones (cols J-M) is only a fallback for tickets not already zone-typed via col E
-      zones = parseImpactedZones(row);
+      zones = parseImpactedZones(row, zoneCols);
     }
 
     const { year, quarter } = parsePI(row[idx.pi]);
+
+    // Labels block: the Prio flags can sit in any of the label columns
+    const labels = labelCols.map((i) => (row[i] || "").trim().toLowerCase());
+    const prioSquad = labels.includes("prio_squad");
+    const prioDomain = labels.includes("prio_domain");
 
     items.push({
       key,
@@ -532,6 +483,9 @@ function mapRowsToItems(rows, fileName) {
       zones,                  // individual zones, used by the Zone filter
       platform: parsed.platform,
       shortDesc: "", // not provided by this export format
+      prioSquad,      // editable in the UI (in memory only, never saved)
+      prioDomain,
+      prioInit: { prioSquad, prioDomain }, // values coming from JIRA, for the reset button
     });
   }
   return items;
@@ -577,11 +531,37 @@ function parsePI(raw) {
   return { year: parseInt(m[1], 10), quarter: parseInt(m[2], 10) - 1 };
 }
 
+// From column J: N "Impacted Zones" columns (one per selected zone, identical header),
+// then M "Labels" columns (one per label, identical header). Both N and M vary per export.
+// Header text may be localised, so the two blocks are told apart by (1) the change of header
+// text between the blocks, (2) a keyword match as a safety net (needed when an export has
+// no zone column at all and the Labels block starts right at J).
+const LABEL_HEADER_RE = /label|[ée]tiquet|etichet|r[óo]tul/i;
+const ZONE_HEADER_RE = /zone/i;
+function classifyTrailingColumns(header) {
+  const groups = [];
+  for (let i = IMPACTED_ZONES_FIRST_COL; i < header.length; i++) {
+    const h = (header[i] || "").trim().toLowerCase();
+    const last = groups[groups.length - 1];
+    if (last && last.h === h) last.cols.push(i); else groups.push({ h, cols: [i] });
+  }
+  const zoneCols = [], labelCols = [];
+  groups.forEach((g, gi) => {
+    let kind;
+    if (LABEL_HEADER_RE.test(g.h)) kind = "label";
+    else if (ZONE_HEADER_RE.test(g.h)) kind = "zone";
+    else if (groups.length > 1) kind = gi === groups.length - 1 ? "label" : "zone"; // positional fallback
+    else kind = "zone"; // single unknown block: keep the historical behaviour (zones)
+    (kind === "label" ? labelCols : zoneCols).push(...g.cols);
+  });
+  return { zoneCols, labelCols };
+}
+
 // Cols J-M (one per selected zone, same header text) — read by position from J onwards.
 // Only used as a fallback (see mapRowsToItems).
-function parseImpactedZones(row) {
+function parseImpactedZones(row, zoneCols) {
   const values = [];
-  for (let i = IMPACTED_ZONES_FIRST_COL; i < row.length; i++) {
+  for (const i of zoneCols) {
     const v = (row[i] || "").trim();
     if (v) values.push(v);
   }
@@ -1479,6 +1459,7 @@ function render() {
   const inYear = filtered.filter((it) => it.year === currentYear);
   if (currentView === "year") renderYear(inYear);
   else renderQuarter(inYear);
+  renderPriorities();
 }
 
 // ---- Year view: one card per quarter (quarter comes from the PI field) ----
@@ -1544,7 +1525,7 @@ function renderBoard(columns) {
 // Same 3-column structure as the former table (Title / UAT start / Go Live),
 // rendered as a soft card; items grouped by status so the status is shown
 // once per group rather than once per item.
-function buildCard({ label, sub, color, items, showShortDesc }) {
+function buildCard({ label, sub, color, items, showShortDesc, inPrio, emptyText }) {
   const card = document.createElement("div");
   card.className = "board-card";
 
@@ -1562,14 +1543,14 @@ function buildCard({ label, sub, color, items, showShortDesc }) {
 
   const colLabels = document.createElement("div");
   colLabels.className = "col-labels";
-  colLabels.innerHTML = `<div class="col-title">Title</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div>`;
+  colLabels.innerHTML = `<div class="col-title">Title</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div><div class="col-flag"></div>`;
   sticky.appendChild(colLabels);
   card.appendChild(sticky);
 
   if (items.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-row";
-    empty.textContent = "Nothing planned here.";
+    empty.textContent = emptyText || "Nothing planned here.";
     card.appendChild(empty);
     return card;
   }
@@ -1581,7 +1562,7 @@ function buildCard({ label, sub, color, items, showShortDesc }) {
     label2.className = "status-label";
     label2.innerHTML = statusTagHTML(status);
     group.appendChild(label2);
-    its.forEach((it) => group.appendChild(buildItemLine(it, showShortDesc)));
+    its.forEach((it) => group.appendChild(buildItemLine(it, showShortDesc, inPrio)));
     card.appendChild(group);
   });
   return card;
@@ -1628,19 +1609,119 @@ function sortByGoLive(items) {
   });
 }
 
-function buildItemLine(item, showShortDesc) {
+function buildItemLine(item, showShortDesc, inPrio) {
   const row = document.createElement("div");
   row.className = "item-line";
+  const active = PRIO_DEFS.filter((d) => item[d.prop]);
+  const chips = !inPrio && active.length
+    ? `<span class="prio-chips">${active.map((d) => `<span class="prio-chip">${d.label}</span>`).join("")}</span>` : "";
+  const tip = active.length ? `${active.map((d) => d.label).join(" + ")} — click to edit` : "Flag as priority";
   row.innerHTML = `
     <div class="col-title">
       <span>${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a>` : escapeHTML(item.title)}</span>
       ${showShortDesc && item.shortDesc ? `<span class="il-desc">${escapeHTML(item.shortDesc)}</span>` : ""}
+      ${chips}
     </div>
     <div class="col-uat">${item.uat ? fmtDateLong(item.uat) : "—"}</div>
     <div class="col-golive">${item.golive ? fmtDateLong(item.golive) : "—"}</div>
+    <div class="col-flag"><button type="button" class="flag-btn${active.length ? " on" : ""}" data-key="${escapeHTML(item.key)}" title="${escapeHTML(tip)}" aria-label="${escapeHTML(tip)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg></button></div>
   `;
+  row.querySelector(".flag-btn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    togglePrioMenu(item, e.currentTarget);
+  });
   return row;
 }
+
+// ---------------------------------------------------------------------
+// PRIORITIES — Prio_Squad / Prio_Domain flags
+// Initial values come from the JIRA labels; they can then be added/removed from the UI.
+// In-memory only: nothing is saved (no storage) and nothing is written back to JIRA.
+// A new import starts again from the JIRA labels.
+// ---------------------------------------------------------------------
+const PRIO_DEFS = [
+  { prop: "prioSquad",  label: "Prio Squad",  color: "#8a5a33" },
+  { prop: "prioDomain", label: "Prio Domain", color: "#3e2a1e" },
+];
+
+function renderPriorities() {
+  const el = document.getElementById("prioSection");
+  const inPeriod = periodItems(); // same period + filters as the board
+  const cols = PRIO_DEFS.map((d) => ({ d, items: inPeriod.filter((it) => it[d.prop]) }));
+  if (!cols.some((c) => c.items.length)) {
+    el.classList.remove("visible");
+    el.innerHTML = "";
+    return;
+  }
+  const edited = allItems.some((it) => PRIO_DEFS.some((d) => it[d.prop] !== it.prioInit[d.prop]));
+  el.innerHTML = `
+    <div class="prio-head">
+      <h2>Priorities</h2>
+      <span class="prio-note">Epics flagged ${PRIO_DEFS.map((d) => d.label).join(" / ")} for the period and filters shown. Temporary view: flags are not saved and not sent to JIRA.</span>
+      ${edited ? `<button type="button" class="prio-reset" id="prioReset">Reset to JIRA labels</button>` : ""}
+    </div>`;
+  const grid = document.createElement("div");
+  grid.className = "board-grid";
+  grid.style.gridTemplateColumns = `repeat(${cols.length}, 1fr)`;
+  cols.forEach(({ d, items }) => grid.appendChild(buildCard({
+    label: d.label, sub: `${items.length} epic${items.length === 1 ? "" : "s"}`, color: d.color,
+    items, showShortDesc: false, inPrio: true, emptyText: `No ${d.label} epic in this view.`,
+  })));
+  el.appendChild(grid);
+  el.classList.add("visible");
+  const reset = document.getElementById("prioReset");
+  if (reset) reset.addEventListener("click", () => {
+    allItems.forEach((it) => PRIO_DEFS.forEach((d) => { it[d.prop] = it.prioInit[d.prop]; }));
+    closePrioMenu();
+    render();
+  });
+}
+
+// Small popover with the two checkboxes, shared by every flag button
+const prioMenu = document.createElement("div");
+prioMenu.className = "prio-menu";
+prioMenu.innerHTML = `<div class="pm-title">Priority flags</div>` +
+  PRIO_DEFS.map((d) => `<label><input type="checkbox" data-prop="${d.prop}"> ${d.label}</label>`).join("");
+document.body.appendChild(prioMenu);
+let prioMenuItem = null, prioMenuInPrio = false;
+
+function findFlagBtn(key, preferPrio) {
+  const all = [...document.querySelectorAll(".flag-btn")].filter((b) => b.dataset.key === key);
+  return all.find((b) => !!b.closest("#prioSection") === preferPrio) || all[0] || null;
+}
+function placePrioMenu(btn) {
+  const r = btn.getBoundingClientRect();
+  prioMenu.classList.add("open");
+  const left = Math.max(8, r.right + window.scrollX - prioMenu.offsetWidth);
+  const h = prioMenu.offsetHeight;
+  // open upwards when there is no room below the button
+  const above = r.bottom + h + 12 > window.innerHeight && r.top - h - 8 > 0;
+  prioMenu.style.left = left + "px";
+  prioMenu.style.top = (above ? r.top + window.scrollY - h - 4 : r.bottom + window.scrollY + 4) + "px";
+}
+function closePrioMenu() { prioMenu.classList.remove("open"); prioMenuItem = null; }
+function togglePrioMenu(item, btn) {
+  if (prioMenu.classList.contains("open") && prioMenuItem === item) return closePrioMenu();
+  prioMenuItem = item;
+  prioMenuInPrio = !!btn.closest("#prioSection");
+  prioMenu.querySelectorAll("input").forEach((cb) => { cb.checked = !!item[cb.dataset.prop]; });
+  placePrioMenu(btn);
+}
+prioMenu.addEventListener("click", (e) => e.stopPropagation());
+prioMenu.addEventListener("change", (e) => {
+  const cb = e.target.closest("input[data-prop]");
+  if (!cb || !prioMenuItem) return;
+  const item = prioMenuItem;
+  const inPrio = prioMenuInPrio;
+  const before = findFlagBtn(item.key, inPrio)?.getBoundingClientRect().top;
+  item[cb.dataset.prop] = cb.checked;
+  render(); // the Priorities section can appear/disappear above the board: keep the clicked row where it was
+  const btn = findFlagBtn(item.key, inPrio);
+  if (btn && before != null) window.scrollBy(0, btn.getBoundingClientRect().top - before);
+  if (btn) placePrioMenu(btn); else closePrioMenu();
+});
+document.addEventListener("click", closePrioMenu);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePrioMenu(); });
 
 function fmtDateShort(d) {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
