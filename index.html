@@ -217,9 +217,36 @@
   .lanes-empty { padding: 24px; font-size: 13px; color: var(--color-muted); font-style: italic; }
 
 
+  /* ---- Sample data + guided tour ---- */
+  .sample-row { margin: -4px 0 14px; font-size: 13px; color: var(--color-muted); }
+  .link-btn { border: none; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--pill-active-bg); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  #fileInfo.sample { color: #8a5a33; font-weight: 600; }
+  #guideBtn {
+    font-size: 13px; height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--color-border);
+    background: #fff; color: var(--color-text); cursor: pointer; font-family: inherit;
+  }
+  #guideBtn:hover { border-color: var(--pill-active-bg); color: var(--pill-active-bg); }
+  .tour-blocker { position: fixed; inset: 0; z-index: 90; }
+  .tour-spot {
+    position: fixed; z-index: 91; border-radius: 12px; pointer-events: none;
+    box-shadow: 0 0 0 3px var(--pill-active-bg), 0 0 0 9999px rgba(23,19,15,.55);
+  }
+  .tour-spot.center { width: 0; height: 0; box-shadow: 0 0 0 9999px rgba(23,19,15,.55); }
+  .tour-tip {
+    position: fixed; z-index: 92; width: 340px; max-width: calc(100vw - 32px); background: #fff; color: var(--color-text);
+    border-radius: 12px; box-shadow: 0 12px 32px rgba(23,19,15,.25); padding: 16px 18px 14px; font-size: 13.5px; line-height: 1.5;
+  }
+  .tour-tip .tt-step { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--pill-active-bg); }
+  .tour-tip h2 { font-size: 16px; margin: 4px 0 6px; }
+  .tour-tip p { margin: 0; }
+  .tour-tip .tt-nav { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+  .tour-tip .tt-skip { margin-right: auto; border: none; background: none; padding: 0; font: inherit; font-size: 12.5px; color: var(--color-muted); cursor: pointer; }
+  .tour-tip .tt-btn { font: inherit; font-size: 13px; height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--color-border); background: #fff; color: var(--color-text); cursor: pointer; }
+  .tour-tip .tt-btn.primary { background: var(--grad-dark); border-color: var(--grad-dark); color: #fff; font-weight: 600; }
+
   /* ---- Vertical printable (release-note style) ---- */
   @media print {
-    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu { display: none !important; }
+    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu, .sample-row, #guideBtn { display: none !important; }
     body { padding: 0; }
     .wrap { max-width: none; padding: 0 10mm; }
   }
@@ -229,6 +256,7 @@
 <div class="wrap">
   <header class="top">
     <h1>Executive delivery roadmap</h1>
+    <button type="button" id="guideBtn" title="Replay the guided tour">? Guide</button>
   </header>
 
   <p class="disclaimer">Import your JIRA export (CSV). Processing is 100% local, in your browser — no data is ever sent anywhere.</p>
@@ -237,7 +265,7 @@
     <strong>How to get your data</strong>
     <ol>
       <li>Open the JIRA filter: <a id="jiraFilterLink" href="#" target="_blank" rel="noopener">View JIRA filter</a></li>
-      <li>In JIRA, click <strong>Export → Export CSV (current fields)</strong>.</li>
+      <li>In JIRA, click the <strong>•••</strong> button (top right), then <strong>Export → Excel CSV - filter fields</strong>.</li>
       <li>Drag the downloaded file into the box below.</li>
     </ol>
   </div>
@@ -246,6 +274,7 @@
     Drag and drop one or more CSV files here, or click to select them.
     <input type="file" id="fileInput" accept=".csv" multiple>
   </div>
+  <div class="sample-row" id="sampleRow">No JIRA export at hand? <button type="button" class="link-btn" id="sampleBtn">Try with sample data</button> (fictional topics)</div>
   <div id="fileInfo"></div>
   <div class="error" id="errorBox"></div>
 
@@ -394,26 +423,34 @@ function handleFiles(files) {
         showError("No Epic rows found: column A (Issue Type) must contain \"Epic\". Check that you exported the right JIRA filter.");
         return;
       }
-      const byKey = new Map();
-      combined.forEach((item) => byKey.set(item.key, item));
-      const all = [...byKey.values()];
-      const noPI = all.filter((it) => it.year == null).length;
-      allItems = all.filter((it) => it.year != null);
-      if (allItems.length === 0) {
-        showError("No usable items found: the PI field (format 2026Q1) is missing or invalid on every row.");
-        return;
-      }
-
-      const nSquad = allItems.filter((it) => it.prioSquad).length, nDomain = allItems.filter((it) => it.prioDomain).length;
-      fileInfo.textContent = `${files.map((f) => f.name).join(", ")} — ${allItems.length} item(s) loaded${noPI ? ` — ${noPI} row(s) ignored (PI missing or invalid)` : ""} — Prio Squad: ${nSquad}, Prio Domain: ${nDomain}`;
-      initFiltersAndPills(allItems);
-      document.getElementById("toolbar").classList.add("visible");
-      document.getElementById("pillsRow").classList.add("visible");
-      render();
+      loadItems(combined, files.map((f) => f.name).join(", "), false);
     } catch (err) {
       showError("Read error: " + err.message);
     }
   });
+}
+
+// Shared by the CSV import and the sample data: dedupe, keep rows with a PI, show the board.
+function loadItems(combined, sourceLabel, isSample) {
+  const byKey = new Map();
+  combined.forEach((item) => byKey.set(item.key, item));
+  const all = [...byKey.values()];
+  const noPI = all.filter((it) => it.year == null).length;
+  const usable = all.filter((it) => it.year != null);
+  if (usable.length === 0) {
+    showError("No usable items found: the PI field (format 2026Q1) is missing or invalid on every row.");
+    return;
+  }
+  allItems = usable;
+
+  const nSquad = allItems.filter((it) => it.prioSquad).length, nDomain = allItems.filter((it) => it.prioDomain).length;
+  fileInfo.textContent = `${sourceLabel} — ${allItems.length} item(s) loaded${noPI ? ` — ${noPI} row(s) ignored (PI missing or invalid)` : ""} — Prio Squad: ${nSquad}, Prio Domain: ${nDomain}`;
+  fileInfo.classList.toggle("sample", isSample);
+  initFiltersAndPills(allItems);
+  document.getElementById("toolbar").classList.add("visible");
+  document.getElementById("pillsRow").classList.add("visible");
+  render();
+  onDataLoaded();
 }
 
 function readFileAsText(file) {
@@ -1815,6 +1852,228 @@ function escapeHTML(str) {
   div.textContent = str ?? "";
   return div.innerHTML;
 }
+
+// ---------------------------------------------------------------------
+// SAMPLE DATA — fictional topics, built as a JIRA-like CSV and run through
+// the regular parser, so the demo behaves exactly like a real import.
+// Dates are relative to the current year so the board is never empty.
+// ---------------------------------------------------------------------
+function buildSampleCSV() {
+  const Y = new Date().getFullYear();
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const d = (day, month, yearOffset = 0) => `${String(day).padStart(2, "0")}/${MON[month - 1]}/${String(Y + yearOffset).slice(-2)} 12:00 AM`;
+  const DIG = "Tribe - Digital -> Squad - ", APP = "Tribe - LVAPP -> Squad - ";
+  // [summary, tribe & squad, PI, status, UAT start, Go Live, zones, labels]
+  const rows = [
+    ["Express checkout with saved cards", DIG + "Checkout", `${Y}Q1`, "Done", d(12, 2), d(10, 3), ["All"], ["prio_domain"]],
+    ["Guest order tracking", DIG + "Order & Services", `${Y}Q1`, "Done", d(20, 1), d(18, 2), ["EMEA", "Japan"], []],
+    ["New loyalty profile page", DIG + "Profile", `${Y}Q2`, "Done", d(14, 4), d(26, 5), ["All"], ["prio_squad"]],
+    ["Product page redesign", DIG + "Consider", `${Y}Q2`, "UAT", d(2, 6), d(30, 6), ["EMEA", "AMER"], ["prio_domain"]],
+    ["Store appointment booking", DIG + "Services", `${Y}Q3`, "UAT", d(8, 7), d(5, 8), ["AMER"], []],
+    ["Personalised homepage", DIG + "Attract", `${Y}Q3`, "Build", d(3, 9), d(29, 9), ["All"], ["prio_squad"]],
+    ["Gift wrapping options at checkout", DIG + "Checkout", `${Y}Q3`, "Build", d(18, 8), d(15, 9), ["Japan"], []],
+    ["Visual search in the app", APP + "Discovery", `${Y}Q4`, "Build", d(6, 10), d(10, 11), ["All"], ["prio_domain"]],
+    ["Push notifications for order updates", APP + "Order & Services", `${Y}Q4`, "Ready to dev", d(2, 11), d(1, 12), ["EMEA"], []],
+    ["Editorial stories hub", DIG + "Editorial Digital", `${Y}Q4`, "Solution design", "", "", ["All"], []],
+    ["Local payment methods", "Zone - China", `${Y}Q4`, "Ready to dev", d(16, 11), d(14, 12), [], ["prio_squad"]],
+    ["Wishlist sharing", DIG + "Explore", `${Y + 1}Q1`, "New", "", "", ["EMEA", "AMER"], []],
+    ["One-click returns", DIG + "Order & Services", `${Y + 1}Q2`, "New", "", "", ["All"], []],
+  ];
+  const cell = (v) => `"${String(v).replace(/"/g, '""')}"`;
+  const header = ["Issue Type", "Issue key", "Issue id", "Summary", "Tribe & Squad / Domain", "PI", "Status", "UAT start", "Go Live",
+    "Impacted Zones", "Impacted Zones", "Labels", "Labels"];
+  const lines = [header.map(cell).join(",")];
+  rows.forEach(([title, tribe, pi, status, uat, golive, zones, labels], i) => {
+    lines.push(["Epic", `DEMO-${101 + i}`, 900 + i, title, tribe, pi, status, uat, golive,
+      zones[0] || "", zones[1] || "", labels[0] || "", labels[1] || ""].map(cell).join(","));
+  });
+  return lines.join("\n");
+}
+
+document.getElementById("sampleBtn").addEventListener("click", () => {
+  hideError();
+  const items = mapRowsToItems(parseCSV(buildSampleCSV()), "Sample data");
+  items.forEach((it) => { it.link = ""; }); // fictional keys: no JIRA link
+  loadItems(items, "Sample data (fictional topics) — import your JIRA CSV above to replace it", true);
+});
+
+// ---------------------------------------------------------------------
+// GUIDED TOUR — two parts: "intro" (before any import) and "app" (once data
+// is on the board). Only a "seen" flag per part is kept in the browser
+// (localStorage); the "? Guide" button replays the tour at any time.
+// ---------------------------------------------------------------------
+const TOUR_STORE_PREFIX = "edr.tour.";
+function tourSeen(name) {
+  try { return localStorage.getItem(TOUR_STORE_PREFIX + name) === "done"; } catch (e) { return false; }
+}
+function markTourSeen(name) {
+  try { localStorage.setItem(TOUR_STORE_PREFIX + name, "done"); } catch (e) { /* storage blocked: tour may show again */ }
+}
+
+const TOURS = {
+  intro: [
+    { title: "Welcome to the Executive delivery roadmap",
+      body: "This short tour shows you how to get started. Everything runs in your browser: your data never leaves your computer." },
+    { target: "#howto", title: "Get your data from JIRA",
+      body: "Open the JIRA filter with this link. In JIRA, click the <strong>•••</strong> button (top right), then <strong>Export → Excel CSV - filter fields</strong>." },
+    { target: "#dropzone", title: "Import the CSV",
+      body: "Drag the downloaded file here, or click to select it. You can import several files at once; duplicate topics are merged." },
+    { target: "#sampleRow", title: "No export at hand?",
+      body: "Load fictional sample data to explore the tool right away. The tour then continues with the main features.",
+      cta: { label: "Load sample data", run: () => document.getElementById("sampleBtn").click() } },
+  ],
+  app: [
+    { target: "#searchInput", title: "Search a topic",
+      body: "Type a few words of a title, or a JIRA key, to find a topic." },
+    { target: "#filterRow", title: "Filter the topics",
+      body: "Narrow down by Domain, Team, Zone, Platform, Status or Flag. A filter in use is highlighted, and options with no matching topic are greyed out." },
+    { target: () => document.querySelector("#board .flag-btn")?.closest(".item-line"), title: "Flag your priorities",
+      body: "Click the flag on a topic to mark it <strong>Prio Squad</strong> (blue) or <strong>Prio Domain</strong> (violet). Flags come from the JIRA labels; changes made here are not saved and not sent to JIRA." },
+    { target: () => document.getElementById("flaggedOnly").closest("label"), title: "Focus on priorities",
+      body: "Tick this box to keep only flagged topics, on screen and in the exports." },
+    { target: "#viewToggle", title: "Year or Quarter",
+      body: "<strong>Year</strong> shows one column per quarter. <strong>Quarter</strong> shows one column per month, with an option to show topics that have no planned dates yet (<em>Not detailed planned</em>)." },
+    { target: "#yearPills", title: "Pick the period",
+      body: "Choose the year to display (and the quarter, in Quarter view). Topics are placed according to their PI field." },
+    { target: "#board", title: "Read the roadmap",
+      body: "Topics are grouped by platform, domain and team, then by status, with their UAT start and Go Live dates. Click a title to open it in JIRA." },
+    { target: "#exportBtn", title: "Export",
+      body: "Download as CSV, a PowerPoint timeline or a Word release note. Exports follow your filters; PowerPoint and Word also follow the period displayed." },
+    { target: "#guideBtn", title: "Replay the tour",
+      body: "Click here at any time to see this tour again." },
+  ],
+};
+
+let tour = null; // { name, steps, i, els }
+
+function startTour(name) {
+  endTour(false);
+  closePrioMenu();
+  exportMenu.classList.remove("open");
+  document.querySelectorAll(".ms-panel.open").forEach((p) => p.classList.remove("open"));
+
+  const blocker = document.createElement("div");
+  blocker.className = "tour-blocker";
+  const spot = document.createElement("div");
+  spot.className = "tour-spot";
+  const tip = document.createElement("div");
+  tip.className = "tour-tip";
+  tip.setAttribute("role", "dialog");
+  tip.setAttribute("aria-live", "polite");
+  blocker.addEventListener("click", (e) => e.stopPropagation());
+  // a CSV dropped while the tour is open is still imported (instead of the browser opening it)
+  blocker.addEventListener("dragover", (e) => e.preventDefault());
+  blocker.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) handleFiles([...e.dataTransfer.files]);
+  });
+  tip.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const act = e.target.closest("[data-tour]")?.dataset.tour;
+    if (act === "next") tourGo(1);
+    else if (act === "prev") tourGo(-1);
+    else if (act === "skip") endTour(true);
+    else if (act === "cta") tour.steps[tour.i].cta.run();
+  });
+  document.body.append(blocker, spot, tip);
+
+  // drop steps whose target is not on the page (e.g. no topic in the year shown)
+  const steps = TOURS[name].filter((s) => !s.target || tourTarget(s));
+  tour = { name, steps, i: 0, els: { blocker, spot, tip } };
+  showTourStep();
+}
+
+function tourTarget(step) {
+  const el = typeof step.target === "function" ? step.target() : document.querySelector(step.target);
+  return el && el.getClientRects().length ? el : null;
+}
+
+function tourGo(delta) {
+  if (!tour) return;
+  const next = tour.i + delta;
+  if (next < 0) return;
+  if (next >= tour.steps.length) return endTour(true);
+  tour.i = next;
+  showTourStep();
+}
+
+function showTourStep() {
+  const { steps, i, els } = tour;
+  const step = steps[i];
+  const last = i === steps.length - 1;
+  els.tip.innerHTML = `
+    <div class="tt-step">${tour.name === "intro" ? "Getting started" : "Main features"} · ${i + 1}/${steps.length}</div>
+    <h2>${step.title}</h2>
+    <p>${step.body}</p>
+    <div class="tt-nav">
+      <button type="button" class="tt-skip" data-tour="skip">${last ? "" : "Skip tour"}</button>
+      ${i > 0 ? `<button type="button" class="tt-btn" data-tour="prev">Back</button>` : ""}
+      ${step.cta ? `<button type="button" class="tt-btn" data-tour="cta">${step.cta.label}</button>` : ""}
+      <button type="button" class="tt-btn primary" data-tour="next">${last ? "Got it" : "Next"}</button>
+    </div>`;
+  const target = step.target ? tourTarget(step) : null;
+  if (target) target.scrollIntoView({ block: target.offsetHeight > window.innerHeight * 0.6 ? "start" : "center", behavior: "smooth" });
+  positionTour();
+  els.tip.querySelector('[data-tour="next"]').focus({ preventScroll: true });
+}
+
+// Spotlight = the target's visible part; bubble below it, else above, else pinned at the bottom of the screen.
+function positionTour() {
+  if (!tour) return;
+  const { spot, tip } = tour.els;
+  const step = tour.steps[tour.i];
+  const target = step.target ? tourTarget(step) : null;
+  const vw = window.innerWidth, vh = window.innerHeight, pad = 6, gap = 12, margin = 16;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+
+  if (!target) {
+    spot.classList.add("center");
+    Object.assign(spot.style, { left: vw / 2 + "px", top: vh / 2 + "px" });
+    Object.assign(tip.style, { left: (vw - tw) / 2 + "px", top: Math.max(margin, (vh - th) / 2) + "px" });
+    return;
+  }
+  spot.classList.remove("center");
+  const r = target.getBoundingClientRect();
+  const top = Math.max(r.top - pad, 4), bottom = Math.min(r.bottom + pad, vh - 4);
+  const left = Math.max(r.left - pad, 4), right = Math.min(r.right + pad, vw - 4);
+  Object.assign(spot.style, { left: left + "px", top: top + "px", width: Math.max(0, right - left) + "px", height: Math.max(0, bottom - top) + "px" });
+
+  let tipTop;
+  if (bottom + gap + th <= vh - margin) tipTop = bottom + gap;
+  else if (top - gap - th >= margin) tipTop = top - gap - th;
+  else tipTop = vh - th - margin;
+  const tipLeft = Math.min(Math.max(margin, left), vw - tw - margin);
+  Object.assign(tip.style, { left: tipLeft + "px", top: tipTop + "px" });
+}
+
+function endTour(markSeen) {
+  if (!tour) return;
+  if (markSeen) markTourSeen(tour.name);
+  Object.values(tour.els).forEach((el) => el.remove());
+  tour = null;
+}
+
+window.addEventListener("resize", positionTour);
+window.addEventListener("scroll", positionTour, { passive: true });
+document.addEventListener("keydown", (e) => {
+  if (!tour) return;
+  if (e.key === "Escape") endTour(true);
+  else if (e.key === "ArrowRight") tourGo(1);
+  else if (e.key === "ArrowLeft") tourGo(-1);
+});
+
+document.getElementById("guideBtn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  startTour(allItems.length ? "app" : "intro");
+});
+
+// First data on the board (CSV or sample): the intro is over, show the features once.
+function onDataLoaded() {
+  if (tour && tour.name === "intro") endTour(true);
+  if (!tourSeen("app")) setTimeout(() => startTour("app"), 300);
+}
+
+if (!tourSeen("intro")) startTour("intro");
 </script>
 </body>
 </html>
