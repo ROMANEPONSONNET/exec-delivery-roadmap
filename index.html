@@ -1862,22 +1862,23 @@ function buildSampleCSV() {
   const Y = new Date().getFullYear();
   const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const d = (day, month, yearOffset = 0) => `${String(day).padStart(2, "0")}/${MON[month - 1]}/${String(Y + yearOffset).slice(-2)} 12:00 AM`;
-  const DIG = "Tribe - Digital -> Squad - ", APP = "Tribe - LVAPP -> Squad - ";
+  // Fictional product: a city bike-sharing service, unrelated to the real backlog.
+  const WEB = "Tribe - Web -> Squad - ", MOB = "Tribe - Mobile -> Squad - ";
   // [summary, tribe & squad, PI, status, UAT start, Go Live, zones, labels]
   const rows = [
-    ["Express checkout with saved cards", DIG + "Checkout", `${Y}Q1`, "Done", d(12, 2), d(10, 3), ["All"], ["prio_domain"]],
-    ["Guest order tracking", DIG + "Order & Services", `${Y}Q1`, "Done", d(20, 1), d(18, 2), ["EMEA", "Japan"], []],
-    ["New loyalty profile page", DIG + "Profile", `${Y}Q2`, "Done", d(14, 4), d(26, 5), ["All"], ["prio_squad"]],
-    ["Product page redesign", DIG + "Consider", `${Y}Q2`, "UAT", d(2, 6), d(30, 6), ["EMEA", "AMER"], ["prio_domain"]],
-    ["Store appointment booking", DIG + "Services", `${Y}Q3`, "UAT", d(8, 7), d(5, 8), ["AMER"], []],
-    ["Personalised homepage", DIG + "Attract", `${Y}Q3`, "Build", d(3, 9), d(29, 9), ["All"], ["prio_squad"]],
-    ["Gift wrapping options at checkout", DIG + "Checkout", `${Y}Q3`, "Build", d(18, 8), d(15, 9), ["Japan"], []],
-    ["Visual search in the app", APP + "Discovery", `${Y}Q4`, "Build", d(6, 10), d(10, 11), ["All"], ["prio_domain"]],
-    ["Push notifications for order updates", APP + "Order & Services", `${Y}Q4`, "Ready to dev", d(2, 11), d(1, 12), ["EMEA"], []],
-    ["Editorial stories hub", DIG + "Editorial Digital", `${Y}Q4`, "Solution design", "", "", ["All"], []],
-    ["Local payment methods", "Zone - China", `${Y}Q4`, "Ready to dev", d(16, 11), d(14, 12), [], ["prio_squad"]],
-    ["Wishlist sharing", DIG + "Explore", `${Y + 1}Q1`, "New", "", "", ["EMEA", "AMER"], []],
-    ["One-click returns", DIG + "Order & Services", `${Y + 1}Q2`, "New", "", "", ["All"], []],
+    ["Unlock a bike by scanning its QR code", MOB + "Ride", `${Y}Q1`, "Done", d(12, 2), d(10, 3), ["All"], ["prio_domain"]],
+    ["Live map of available bikes", MOB + "Trip Planning", `${Y}Q1`, "Done", d(20, 1), d(18, 2), ["North", "Riverside"], []],
+    ["Monthly pass subscription", WEB + "Memberships", `${Y}Q2`, "Done", d(14, 4), d(26, 5), ["All"], ["prio_squad"]],
+    ["Battery level shown for e-bikes", MOB + "Ride", `${Y}Q2`, "UAT", d(2, 6), d(30, 6), ["North", "South"], ["prio_domain"]],
+    ["Report a damaged bike with photo", MOB + "Maintenance", `${Y}Q3`, "UAT", d(8, 7), d(5, 8), ["South"], []],
+    ["Route suggestions with bike lanes", WEB + "Trip Planning", `${Y}Q3`, "Build", d(3, 9), d(29, 9), ["All"], ["prio_squad"]],
+    ["Station rebalancing dashboard", WEB + "Stations", `${Y}Q3`, "Build", d(18, 8), d(15, 9), ["Riverside"], []],
+    ["Predictive maintenance alerts", WEB + "Maintenance", `${Y}Q4`, "Build", d(6, 10), d(10, 11), ["All"], ["prio_domain"]],
+    ["Reserve a bike 10 minutes ahead", MOB + "Ride", `${Y}Q4`, "Ready to dev", d(2, 11), d(1, 12), ["North"], []],
+    ["Carbon savings tracker", MOB + "Memberships", `${Y}Q4`, "Solution design", "", "", ["All"], []],
+    ["New stations around the university campus", "Zone - Campus", `${Y}Q4`, "Ready to dev", d(16, 11), d(14, 12), [], ["prio_squad"]],
+    ["Group rides for up to 4 bikes", MOB + "Trip Planning", `${Y + 1}Q1`, "New", "", "", ["North", "South"], []],
+    ["Smart dock firmware update", WEB + "Stations", `${Y + 1}Q2`, "New", "", "", ["All"], []],
   ];
   const cell = (v) => `"${String(v).replace(/"/g, '""')}"`;
   const header = ["Issue Type", "Issue key", "Issue id", "Summary", "Tribe & Squad / Domain", "PI", "Status", "UAT start", "Go Live",
@@ -1893,7 +1894,15 @@ function buildSampleCSV() {
 document.getElementById("sampleBtn").addEventListener("click", () => {
   hideError();
   const items = mapRowsToItems(parseCSV(buildSampleCSV()), "Sample data");
-  items.forEach((it) => { it.link = ""; }); // fictional keys: no JIRA link
+  // Fictional teams aren't in the real Team -> Domain lists, so group them here
+  const SAMPLE_DOMAINS = {
+    "Ride": "Rider Experience", "Trip Planning": "Rider Experience", "Memberships": "Rider Experience",
+    "Stations": "Fleet & Operations", "Maintenance": "Fleet & Operations",
+  };
+  items.forEach((it) => {
+    it.link = ""; // fictional keys: no JIRA link
+    if (SAMPLE_DOMAINS[it.team]) it.domain = SAMPLE_DOMAINS[it.team];
+  });
   loadItems(items, "Sample data (fictional topics) — import your JIRA CSV above to replace it", true);
 });
 
