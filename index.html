@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fdfbf7">
 <title>Quarterly roadmap</title>
 <style>
   :root {
@@ -18,6 +20,12 @@
     /* quarterly gradient: dark brown (Q1) to light tan (Q4) */
     --grad-dark: #3e2a1e;
     --grad-light: #d9b48f;
+    /* Epic mini timeline: Build = grey, UAT = beige, Go Live = teal star (same colours as the PowerPoint export) */
+    --phase-build: #a6a6a6;
+    --phase-uat: #e0bba0;
+    --phase-uat-line: #c99a78;
+    --phase-star: #5e9696;
+    --phase-star-line: #3f6b6b;
   }
 
   * { box-sizing: border-box; }
@@ -150,15 +158,15 @@
   #board { display: none; }
   #board.visible { display: block; }
 
-  /* ---- Column headers (Year = quarters, Quarter = months): Title / UAT start / Go Live.
+  /* ---- Column headers (Year = quarters, Quarter = months): Title / Build → UAT → Go Live.
      Items are grouped by status, so the status is shown once per group, not once per item. */
   .card-head { padding: 12px 16px 10px; min-height: 56px; position: relative; }
   .card-head .label { font-size: 18px; font-weight: 700; display: block; }
   .card-head .sub { font-size: 12px; opacity: .85; }
 
-  .col-labels { display: flex; font-size: 11px; color: var(--color-muted); background: var(--card-bg); padding: 7px 16px; }
-  .col-title { flex: 1 1 auto; }
-  .col-uat, .col-golive { flex: 0 0 86px; text-align: center; white-space: nowrap; }
+  .col-labels { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--color-muted); background: var(--card-bg); padding: 7px 16px; }
+  .col-title { flex: 1 1 auto; min-width: 0; }
+  .col-dates { white-space: nowrap; }
 
   .status-group .status-label { padding: 10px 16px 4px; }
   .status-tag {
@@ -172,16 +180,33 @@
   .status-tag.st-green  { color: #17562e; background: #d9f0df; }
   .status-tag.st-other  { color: var(--color-muted); background: #fff; border: 1px solid var(--color-border); }
 
-  .item-line { display: flex; align-items: baseline; padding: 7px 16px; font-size: 12.5px; }
+  /* Epic line: title (full width, may wrap) + flag, then a mini timeline Build → UAT → Go Live with the dates below */
+  .item-line { display: flex; flex-direction: column; gap: 4px; padding: 7px 16px; font-size: 12.5px; }
+  .item-line + .item-line { border-top: 1px dashed var(--color-border); }
+  .il-head { display: flex; align-items: flex-start; gap: 6px; }
   .status-group { padding-bottom: 8px; }
   .status-group + .status-group { border-top: 1px solid var(--color-border); margin-top: 4px; padding-top: 6px; }
-  .item-line .col-title { display: flex; flex-direction: column; gap: 2px; }
+  .item-line .col-title { display: flex; flex-direction: column; gap: 2px; line-height: 1.35; }
   .item-line .il-desc { font-size: 11px; color: var(--color-muted); }
   .col-title a { color: inherit; text-decoration: underline; text-decoration-color: var(--color-border); }
   .col-title a:hover { text-decoration-color: var(--pill-active-bg); }
-  .item-line .col-uat, .item-line .col-golive { color: var(--color-muted); }
 
-  .col-flag { flex: 0 0 26px; text-align: right; }
+  .frise { display: grid; grid-template-columns: auto 1fr auto 1fr auto; align-items: center; margin-top: 2px; }
+  .fr-seg { height: 4px; border-radius: 2px; }
+  .fr-seg.build { background: var(--phase-build); }
+  .fr-seg.uat { background: var(--phase-uat); }
+  .fr-seg.empty { background: repeating-linear-gradient(90deg, var(--color-border) 0 4px, transparent 4px 7px); }
+  .fr-pt { width: 9px; height: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px var(--color-border); }
+  .fr-pt.build { background: var(--phase-build); box-shadow: 0 0 0 1px var(--phase-build); }
+  .fr-pt.uat { background: var(--phase-uat); box-shadow: 0 0 0 1px var(--phase-uat-line); }
+  .fr-star { width: 12px; height: 12px; display: block; }
+  .fr-star path { fill: var(--phase-star); stroke: var(--phase-star-line); stroke-width: 1.2; stroke-linejoin: round; }
+  .fr-dates { display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 10.5px; color: var(--color-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .fr-dates span:nth-child(2) { text-align: center; }
+  .fr-dates span:nth-child(3) { text-align: right; }
+  .fr-dates .none { opacity: .6; }
+
+  .col-flag { flex: 0 0 20px; text-align: right; }
   .flag-btn { border: none; background: none; cursor: pointer; padding: 0 2px; line-height: 1; color: var(--color-muted); opacity: .35; vertical-align: middle; }
   .flag-btn svg { width: 13px; height: 13px; display: block; margin-left: auto; }
   .flag-btn svg path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
@@ -246,6 +271,177 @@
   .tour-tip .tt-btn { font: inherit; font-size: 13px; height: 32px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--color-border); background: #fff; color: var(--color-text); cursor: pointer; }
   .tour-tip .tt-btn.primary { background: var(--grad-dark); border-color: var(--grad-dark); color: #fff; font-weight: 600; }
 
+  /* ---- Mobile cheat sheet (≤ 760px): period bar on top, 4 tabs at the bottom, sheets for details/filters ---- */
+  .m-only, .m-only-inline, #mobileApp { display: none; }
+  .m-top { position: sticky; top: 0; z-index: 60; background: var(--color-bg); border-bottom: 1px solid var(--color-border); padding: calc(10px + env(safe-area-inset-top)) 16px 10px; }
+  .m-top-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .m-top-row + .m-top-row { margin-top: 8px; }
+  .m-search { flex: 1; min-width: 0; width: auto; height: 40px; font-size: 16px; } /* 16px avoids the iOS zoom on focus */
+  .m-icon-btn, .m-x {
+    flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--color-border); background: #fff;
+    font: inherit; font-size: 14px; color: var(--color-text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .m-seg { display: inline-flex; background: var(--pill-bg); border-radius: 999px; padding: 3px; }
+  .m-seg button { border: none; background: transparent; font: inherit; font-size: 13px; padding: 7px 13px; border-radius: 999px; color: var(--color-muted); cursor: pointer; }
+  .m-seg button.active { background: var(--grad-dark); color: #fff; font-weight: 700; }
+  .m-stepper { display: flex; align-items: center; gap: 4px; }
+  .m-stepper button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--color-border); background: #fff; font-size: 18px; line-height: 1; color: var(--color-text); cursor: pointer; }
+  .m-stepper button:disabled { opacity: .3; cursor: default; }
+  .m-stepper span { min-width: 74px; text-align: center; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .m-tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 70; display: grid; grid-template-columns: repeat(4, 1fr);
+    background: #fff; border-top: 1px solid var(--color-border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .m-tabbar button {
+    position: relative; border: none; background: none; font: inherit; font-size: 11px; color: var(--color-muted);
+    display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; min-height: 48px; cursor: pointer;
+  }
+  .m-tabbar svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .m-tabbar button.active { color: var(--grad-dark); font-weight: 700; }
+  .m-tabbar button.active::before { content: ""; position: absolute; top: -6px; left: 30%; right: 30%; height: 3px; border-radius: 0 0 3px 3px; background: var(--pill-active-bg); }
+  .m-badge {
+    position: absolute; top: 2px; left: calc(50% + 6px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+    background: var(--pill-active-bg); color: #fff; font-size: 10.5px; font-weight: 700; display: none; align-items: center; justify-content: center;
+  }
+  .m-badge.on { display: flex; }
+
+  #mView { padding: 14px 16px 24px; }
+  .m-hint { font-size: 12.5px; color: var(--color-muted); margin: 0 0 10px; }
+  .m-section { margin-top: 24px; scroll-margin-top: 112px; }
+  .m-section h2 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); margin: 0 0 8px; }
+  .m-section h2 span { display: inline-flex; align-items: center; gap: 6px; }
+  .m-section h2 b { color: var(--color-text); font-size: 13px; }
+  .m-section > .m-hint { margin-top: -4px; }
+  .m-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .m-tile { background: #fff; border: 1px solid var(--color-border); border-radius: 14px; padding: 12px; cursor: pointer; }
+  .m-tile .v { font-size: 28px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .m-tile .l { font-size: 12px; color: var(--color-muted); margin-top: 2px; }
+  .m-tile.alert { border-color: #f3c6c1; background: #fff8f7; }
+  .m-tile.alert .v { color: #a13327; }
+  .m-statusbar { display: flex; height: 10px; gap: 2px; border-radius: 5px; overflow: hidden; background: var(--color-border); }
+  .m-statusbar span { display: block; min-width: 4px; }
+  .fam-green { background: #3c9a5f; } .fam-purple { background: #8a63d2; } .fam-blue { background: #4a7fd6; }
+  .fam-gray { background: #a3a6ab; } .fam-other { background: #d6cfc5; }
+  .m-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; color: var(--color-muted); }
+  .m-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+  .m-legend b { color: var(--color-text); }
+
+  .m-card { display: flex; flex-direction: column; gap: 6px; background: #fff; border: 1px solid var(--color-border); border-radius: 12px; padding: 11px 13px; cursor: pointer; }
+  .m-card + .m-card { margin-top: 8px; }
+  .m-card:active { background: var(--card-bg); }
+  .m-card-head { display: flex; align-items: flex-start; gap: 8px; }
+  .m-card-title { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .m-card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12px; color: var(--color-muted); }
+  .m-card-note { font-size: 12.5px; font-weight: 600; color: var(--grad-dark); }
+  .m-card-note.alert { color: #a13327; }
+  .m-flag { flex: none; width: 14px; height: 14px; margin-top: 2px; }
+  .m-flag path { fill: currentColor; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .m-flag.squad { color: #2f6bd7; } .m-flag.domain { color: #7a3fd1; }
+  .m-more { display: block; width: 100%; margin-top: 8px; padding: 10px; border: 1px dashed var(--color-border); border-radius: 10px; background: none; font: inherit; font-size: 13px; font-weight: 600; color: var(--pill-active-bg); cursor: pointer; }
+  .m-empty { padding: 26px 8px; text-align: center; font-size: 14px; color: var(--color-muted); }
+  .m-empty.small { padding: 12px 4px; font-size: 13px; text-align: left; }
+  .m-dom-row { display: grid; grid-template-columns: 1fr 70px 28px 10px; align-items: center; gap: 10px; padding: 12px 2px; border-bottom: 1px solid var(--color-border); font-size: 14px; cursor: pointer; }
+  .m-dom-row b { text-align: right; font-variant-numeric: tabular-nums; }
+  .m-dom-row .m-statusbar, .m-team-head .m-statusbar { height: 8px; }
+  .chev { color: var(--color-muted); transition: transform .15s; }
+  .m-filter-note { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; padding: 8px 12px; font-size: 12.5px; background: #f6ece2; border: 1px solid var(--pill-active-bg); border-radius: 10px; }
+
+  .m-colseg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--pill-bg); border-radius: 12px; }
+  .m-colseg button { border: none; background: transparent; border-radius: 9px; padding: 7px 2px; font: inherit; font-size: 13px; color: var(--color-muted); display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; }
+  .m-colseg button.active { background: var(--grad-dark); color: #fff; font-weight: 700; }
+  .m-chips { display: flex; gap: 8px; overflow-x: auto; margin: 10px -16px 0; padding: 2px 16px 4px; scrollbar-width: none; }
+  .m-chips::-webkit-scrollbar { display: none; }
+  .m-chip { flex: none; border: 1px solid var(--color-border); background: #fff; border-radius: 999px; padding: 7px 13px; font: inherit; font-size: 13px; color: var(--color-text); white-space: nowrap; cursor: pointer; }
+  .m-chip small { margin-left: 4px; opacity: .7; }
+  .m-chip.zero { color: #b9b3aa; }
+  .m-chip.active { background: var(--pill-active-bg); border-color: var(--pill-active-bg); color: #fff; font-weight: 700; }
+  .m-platform { margin: 20px 0 6px; padding-bottom: 6px; border-bottom: 2px solid var(--pill-active-bg); font-size: 17px; font-weight: 700; color: var(--grad-dark); }
+  .m-domain { margin: 12px 0 6px; padding: 7px 12px; border-radius: 10px; background: var(--grad-dark); color: #fff; font-size: 12.5px; font-weight: 700; }
+  .m-team { margin-top: 8px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--card-bg); overflow: hidden; }
+  .m-team-head { width: 100%; display: grid; grid-template-columns: 1fr 56px auto 10px; align-items: center; gap: 10px; padding: 12px 14px; border: none; background: none; font: inherit; font-size: 14px; font-weight: 600; text-align: left; color: inherit; cursor: pointer; }
+  .m-team-head .count { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .m-team.open .chev { transform: rotate(90deg); }
+  .m-team-body { padding: 0 8px 8px; }
+
+  .m-backdrop { display: none; position: fixed; inset: 0; z-index: 80; background: rgba(23,19,15,.45); }
+  .m-backdrop.on { display: block; }
+  .m-sheet {
+    display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 81; max-height: 88vh; overflow-y: auto;
+    background: #fff; border-radius: 18px 18px 0 0; padding: 8px 18px calc(18px + env(safe-area-inset-bottom));
+    box-shadow: 0 -10px 30px rgba(23,19,15,.18); animation: m-sheet-in .22s ease-out;
+  }
+  .m-sheet.on { display: block; }
+  @keyframes m-sheet-in { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .m-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--color-border); margin: 4px auto 10px; }
+  .m-sheet-head { display: flex; align-items: flex-start; gap: 12px; }
+  .m-sheet-head > div { flex: 1; min-width: 0; }
+  .m-sheet-head h2 { font-size: 18px; line-height: 1.3; margin: 2px 0 8px; }
+  .m-key { font-size: 12px; color: var(--color-muted); }
+  .m-why { margin-top: 12px; }
+  .m-tl { list-style: none; margin: 14px 0; padding: 0; border: 1px solid var(--color-border); border-radius: 12px; }
+  .m-tl li { display: grid; grid-template-columns: 12px 1fr auto; column-gap: 10px; align-items: center; padding: 10px 12px; font-size: 14px; }
+  .m-tl li + li { border-top: 1px solid var(--color-border); }
+  .m-tl b { font-variant-numeric: tabular-nums; }
+  .m-tl small { grid-column: 3; text-align: right; font-size: 11.5px; color: var(--color-muted); }
+  .m-tl-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--color-border); }
+  .m-tl-dot.build { background: var(--phase-build); } .m-tl-dot.uat { background: var(--phase-uat); } .m-tl-dot.star { background: var(--phase-star); }
+  .m-dl { display: grid; grid-template-columns: 84px 1fr; gap: 6px 12px; margin: 14px 0; font-size: 13.5px; }
+  .m-dl dt { color: var(--color-muted); }
+  .m-dl dd { margin: 0; word-break: break-word; }
+  .m-flags { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .m-flags label { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 10px; font-size: 14px; cursor: pointer; }
+  .m-flags input { width: 18px; height: 18px; margin: 0; accent-color: var(--pill-active-bg); }
+  .m-flags .pm-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .m-note { font-size: 11.5px; color: var(--color-muted); margin: 8px 0 14px; }
+  .m-primary, .m-secondary {
+    display: flex; align-items: center; justify-content: center; width: 100%; height: 48px; border-radius: 12px;
+    font: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer;
+  }
+  .m-primary { background: var(--grad-dark); border: 1px solid var(--grad-dark); color: #fff; }
+  .m-secondary { background: #fff; border: 1px solid var(--color-border); color: var(--color-text); font-weight: 600; }
+
+  /* Filters sheet: list of filters → tap one → its options (fixed header and footer, scrolling middle) */
+  #mFilters.on { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+  .m-fs-top { flex: none; padding: 8px 18px 0; }
+  .m-fs-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 44px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border); }
+  .m-fs-head h2 { margin: 0; font-size: 16px; text-align: center; }
+  .m-fs-head > :first-child { justify-self: start; }
+  .m-fs-head > :last-child { justify-self: end; }
+  .m-back { border: none; background: none; padding: 8px 0; font: inherit; font-size: 15px; font-weight: 600; color: var(--pill-active-bg); cursor: pointer; }
+  .m-fs-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 18px 12px; }
+  .m-fs-row {
+    display: grid; grid-template-columns: auto 1fr 10px; align-items: center; gap: 12px; width: 100%; min-height: 54px; padding: 0 2px;
+    border: none; border-bottom: 1px solid var(--color-border); background: none; font: inherit; font-size: 15px; color: inherit; text-align: left; cursor: pointer;
+  }
+  .m-fs-row .val { justify-self: end; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--color-muted); }
+  .m-fs-row.narrowed .val { color: var(--pill-active-bg); font-weight: 700; }
+  .m-fs-row.m-switch { grid-template-columns: 1fr auto; }
+  .m-fs-row input, .m-opt input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--pill-active-bg); }
+  .m-fs-actions { display: flex; gap: 22px; padding: 14px 2px 6px; }
+  .m-fs-actions .link-btn { font-size: 14px; }
+  .m-opt { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 2px; border-bottom: 1px solid var(--color-border); font-size: 15px; cursor: pointer; }
+  .m-opt.off { color: #b9b3aa; cursor: default; }
+  .m-fs-reset { margin: 16px 2px 0; font-size: 14px; }
+  .m-data { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; font-size: 12px; color: var(--color-muted); }
+  .m-fs-foot { flex: none; padding: 10px 18px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--color-border); background: #fff; }
+
+  @media (max-width: 760px) {
+    .d-only { display: none !important; }
+    .m-only-inline { display: inline; }
+    .wrap { padding: 20px 16px 40px; }
+    h1 { font-size: 21px; }
+    #dropzone { padding: 22px 16px; }
+
+    /* Data loaded: the desktop page gives way to the mobile app (the filter panel survives as a sheet) */
+    body.has-data { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+    body.has-data .wrap { padding: 0 16px; }
+    body.has-data .wrap > :not(.error) { display: none !important; }
+    body.has-data .error.visible { margin-top: 12px; }
+    body.has-data #mobileApp { display: block; }
+    body.m-locked { overflow: hidden; }
+  }
+
   /* ---- Vertical printable (release-note style) ---- */
   @media print {
     #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu, .sample-row, #guideBtn { display: none !important; }
@@ -276,7 +472,8 @@
   </div>
 
   <div id="dropzone">
-    Drag and drop one or more CSV files here, or click to select them.
+    <span class="d-only">Drag and drop one or more CSV files here, or click to select them.</span>
+    <span class="m-only-inline">Tap here to choose a JIRA CSV file.</span>
     <input type="file" id="fileInput" accept=".csv" multiple>
   </div>
   <div class="sample-row" id="sampleRow">No JIRA export at hand? <button type="button" class="link-btn" id="sampleBtn">Try with sample data</button> (fictional topics)</div>
@@ -336,6 +533,37 @@
   <div id="board"></div>
 </div>
 
+<!-- Mobile app (phones only, once data is loaded) -->
+<div id="mobileApp">
+  <div class="m-top" id="mTop">
+    <div class="m-top-row">
+      <input type="search" id="mSearch" class="search-input m-search" placeholder="Search a topic or JIRA key…" aria-label="Search a topic" autocomplete="off" enterkeyhint="search">
+      <button type="button" class="m-icon-btn" id="mGuideBtn" aria-label="Replay the guided tour">?</button>
+    </div>
+    <div class="m-top-row">
+      <div class="m-seg" id="mViewSeg">
+        <button type="button" data-view="year">Year</button>
+        <button type="button" data-view="quarter">Quarter</button>
+      </div>
+      <div class="m-stepper">
+        <button type="button" id="mPrev" aria-label="Previous period">‹</button>
+        <span id="mPeriodLabel"></span>
+        <button type="button" id="mNext" aria-label="Next period">›</button>
+      </div>
+    </div>
+  </div>
+  <main id="mView"></main>
+  <nav class="m-tabbar" id="mTabBar">
+    <button type="button" data-tab="brief"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Brief</button>
+    <button type="button" data-tab="roadmap"><svg viewBox="0 0 24 24"><path d="M3 6h9M7 12h13M3 18h11"/></svg>Roadmap</button>
+    <button type="button" data-tab="prio"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/></svg>Priorities</button>
+    <button type="button" data-tab="filters"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Filters<span class="m-badge" id="mFilterBadge"></span></button>
+  </nav>
+</div>
+<div class="m-backdrop" id="mBackdrop"></div>
+<div class="m-sheet" id="mDetail" role="dialog" aria-modal="true"></div>
+<div class="m-sheet" id="mFilters" role="dialog" aria-modal="true" aria-label="Filters"></div>
+
 <script>
 /*
  * Quarterly roadmap — local prototype built from JIRA CSV exports.
@@ -347,8 +575,8 @@
  * 4-column "Impacted Zones" multi-value fallback.
  */
 // Tool version — bump both values on every release (date format YYYY-MM-DD).
-const APP_VERSION = "1.0.0";
-const APP_LAST_UPDATED = "2026-10-22";
+const APP_VERSION = "1.2.0";
+const APP_LAST_UPDATED = "2026-10-25";
 document.getElementById("appVersion").textContent =
   "v" + APP_VERSION + " · Last updated " +
   new Date(APP_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
@@ -362,11 +590,12 @@ const COL = {
   tribeSquad: 4,  // E — split into Platform/Team/Domain, or "Zone - XXXX"
   pi: 5,          // F — format AAAAQn -> Year/Quarter (drives placement)
   status: 6,      // G
-  uat: 7,         // H — UAT start date
-  golive: 8,      // I — Go Live date (displayed only)
+  start: 7,       // H — Start date (build start, drives month placement)
+  uat: 8,         // I — UAT start date
+  golive: 9,      // J — Go Live date
 };
-const IMPACTED_ZONES_FIRST_COL = 9; // J onwards (J-M: one column per selected zone)
-const MIN_COLUMNS = 9;              // A to I must exist
+const IMPACTED_ZONES_FIRST_COL = 10; // K onwards (one column per selected zone)
+const MIN_COLUMNS = 10;              // A to J must exist
 const JIRA_BASE_URL = "https://vuitton.atlassian.net/browse/";
 
 // Team -> Domain grouping, from the "Tribe & Squad / Domain" field's right-hand side
@@ -420,6 +649,7 @@ dropzone.addEventListener("drop", (e) => {
 });
 fileInput.addEventListener("change", (e) => {
   if (e.target.files.length) handleFiles([...e.target.files]);
+  e.target.value = ""; // picking the same file again must re-import it
 });
 
 function handleFiles(files) {
@@ -461,6 +691,9 @@ function loadItems(combined, sourceLabel, isSample) {
   initFiltersAndPills(allItems);
   document.getElementById("toolbar").classList.add("visible");
   document.getElementById("pillsRow").classList.add("visible");
+  document.body.classList.add("has-data");
+  resetMobileState();
+  if (isMobile()) mobileDefaultPeriod();
   render();
   onDataLoaded();
 }
@@ -479,16 +712,25 @@ function hideError() { errorBox.classList.remove("visible"); }
 
 function parseCSV(text) {
   const clean = text.replace(/^﻿/, ""); // strip BOM some JIRA exports start with
-  const lines = clean.replace(/\r\n/g, "\n").split("\n").filter((l) => l.trim() !== "");
-  return lines.map(parseCSVLine);
+  // Skip blank lines, including separator-only ones (";;;;") left by Excel
+  const lines = clean.replace(/\r\n/g, "\n").split("\n").filter((l) => l.replace(/[,;"\s]/g, "") !== "");
+  if (!lines.length) return [];
+  const sep = detectSeparator(lines[0]);
+  return lines.map((l) => parseCSVLine(l, sep));
 }
-function parseCSVLine(line) {
+// JIRA exports use commas; a file re-saved by Excel with a French locale uses semicolons.
+// The header line tells which one: the separator that splits it into the most columns.
+function detectSeparator(headerLine) {
+  const count = (sep) => parseCSVLine(headerLine, sep).length;
+  return count(";") > count(",") ? ";" : ",";
+}
+function parseCSVLine(line, sep = ",") {
   const result = []; let current = ""; let inQuotes = false;
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
     if (char === '"') {
       if (inQuotes && line[i + 1] === '"') { current += '"'; i++; } else { inQuotes = !inQuotes; }
-    } else if (char === "," && !inQuotes) { result.push(current); current = ""; }
+    } else if (char === sep && !inQuotes) { result.push(current); current = ""; }
     else { current += char; }
   }
   result.push(current);
@@ -498,7 +740,7 @@ function parseCSVLine(line) {
 function mapRowsToItems(rows, fileName) {
   // Row 0 is the header line: its text is ignored (it may be in any language).
   if (!rows.length || rows[0].length < MIN_COLUMNS) {
-    throw new Error(`${fileName}: expected the JIRA export layout (at least columns A to I), found ${rows.length ? rows[0].length : 0} column(s).`);
+    throw new Error(`${fileName}: expected the JIRA export layout (at least columns A to J), found ${rows.length ? rows[0].length : 0} column(s).`);
   }
   const idx = COL;
   const { zoneCols, labelCols } = classifyTrailingColumns(rows[0]);
@@ -518,7 +760,7 @@ function mapRowsToItems(rows, fileName) {
     let domain = parsed.domain;
     let zones = parsed.zone ? [parsed.zone] : [];
     if (domain !== "Zone") {
-      // Impacted Zones (cols J-M) is only a fallback for tickets not already zone-typed via col E
+      // Impacted Zones (from col K) is only a fallback for tickets not already zone-typed via col E
       zones = parseImpactedZones(row, zoneCols);
     }
 
@@ -534,6 +776,7 @@ function mapRowsToItems(rows, fileName) {
       link: JIRA_BASE_URL + key,
       title: (row[idx.title] || "").trim(),
       status: (row[idx.status] || "").trim(),
+      start: parseDate(row[idx.start]),
       uat: parseDate(row[idx.uat]),
       golive: parseDate(row[idx.golive]),
       year,       // from PI — drives Year/Quarter placement
@@ -591,11 +834,11 @@ function parsePI(raw) {
   return { year: parseInt(m[1], 10), quarter: parseInt(m[2], 10) - 1 };
 }
 
-// From column J: N "Impacted Zones" columns (one per selected zone, identical header),
+// From column K: N "Impacted Zones" columns (one per selected zone, identical header),
 // then M "Labels" columns (one per label, identical header). Both N and M vary per export.
 // Header text may be localised, so the two blocks are told apart by (1) the change of header
 // text between the blocks, (2) a keyword match as a safety net (needed when an export has
-// no zone column at all and the Labels block starts right at J).
+// no zone column at all and the Labels block starts right at K).
 const LABEL_HEADER_RE = /label|[ée]tiquet|etichet|r[óo]tul/i;
 const ZONE_HEADER_RE = /zone/i;
 function classifyTrailingColumns(header) {
@@ -617,7 +860,7 @@ function classifyTrailingColumns(header) {
   return { zoneCols, labelCols };
 }
 
-// Cols J-M (one per selected zone, same header text) — read by position from J onwards.
+// One column per selected zone (same header text) — read by position from K onwards.
 // Only used as a fallback (see mapRowsToItems).
 function parseImpactedZones(row, zoneCols) {
   const values = [];
@@ -656,6 +899,17 @@ function parseDate(str) {
       const d = new Date(year, mon, day, hour, minute);
       return isNaN(d.getTime()) ? null : d;
     }
+  }
+
+  // Excel re-save (French locale): "11/08/2025" or "11/08/2025 00:00" — always day first.
+  // Parsed here because the browser fallback would read it month first (US).
+  const n = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::\d{2})?)?$/.exec(s);
+  if (n) {
+    let year = parseInt(n[3], 10);
+    if (year < 100) year += 2000;
+    const mon = parseInt(n[2], 10) - 1, day = parseInt(n[1], 10);
+    const d = new Date(year, mon, day, n[4] ? parseInt(n[4], 10) : 0, n[5] ? parseInt(n[5], 10) : 0);
+    return isNaN(d.getTime()) || d.getMonth() !== mon ? null : d;
   }
 
   // Fallback: let the browser try (covers ISO dates, "DD Month YYYY", etc.)
@@ -800,9 +1054,10 @@ function exportCSV() {
     if (!b.golive) return -1;
     return a.golive - b.golive;
   });
-  const headers = ["Title", "Status", "UAT start", "Go Live", "Short description", "Domain", "Team", "Zone", "Platform"];
+  const headers = ["Title", "Status", "Build start", "UAT start", "Go Live", "Short description", "Domain", "Team", "Zone", "Platform"];
   const rows = items.map((it) => [
     it.title, it.status,
+    it.start ? fmtDateLong(it.start) : "",
     it.uat ? fmtDateLong(it.uat) : "",
     it.golive ? fmtDateLong(it.golive) : "",
     it.shortDesc, it.domain, it.team, it.zone, it.platform,
@@ -949,14 +1204,15 @@ function exportNothing() {
 
 // =====================================================================
 // POWERPOINT — timeline (planning) of the displayed period
-//   Build      = period start  -> UAT start
+//   Build      = Start date    -> UAT start (no Start date = no build bar)
 //   UAT        = UAT start     -> Go Live
 //   Activation = star at the Go Live date
 // =====================================================================
 
 const PPT = {
-  W: 13.333, H: 7.5, M: 0.4, TITLE_W: 4.0, ROW_H: 0.33, GRP_H: 0.25, DOM_H: 0.28, PLAT_H: 0.34,
-  BUILD: "9DBDE8", UAT: "B79CE0", STAR: "F2B01E", STAR_LINE: "8A5A00",
+  // GRP_H = gap above each team; teams are a column on the left (TEAM_W) spanning their feature rows
+  W: 13.333, H: 7.5, M: 0.4, TITLE_W: 4.0, TEAM_W: 1.05, ROW_H: 0.33, GRP_H: 0.08, DOM_H: 0.28, PLAT_H: 0.34,
+  BUILD: "A6A6A6", UAT: "E0BBA0", STAR: "5E9696", STAR_LINE: "3F6B6B", // same as the board's mini timeline (--phase-*)
   INK: "1A1A1A", MUTED: "6B6B6B", BROWN: "3E2A1E", DOMAIN: "8A5A33", BAND: "F3EDE4", GRID: "E3DCD2", TODAY: "C0392B",
 };
 const EMU = (inches) => Math.round(inches * 914400);
@@ -965,18 +1221,36 @@ const hex6 = (c) => c.replace("#", "").toUpperCase();
 // Which segments of the bar fall inside the displayed period (null = nothing to draw there)
 function timelineSegments(it, period) {
   const ps = period.start.getTime(), pe = period.end.getTime();
+  let start = it.start ? it.start.getTime() : null;
   let uat = it.uat ? it.uat.getTime() : null;
   const gl = it.golive ? it.golive.getTime() : null;
   if (uat !== null && gl !== null && uat > gl) uat = null; // inconsistent dates: UAT ignored
+  const buildEnd = uat !== null ? uat : gl; // build runs until UAT start, or Go Live when there is no UAT
+  if (start !== null && buildEnd !== null && start > buildEnd) start = null; // inconsistent dates: build ignored
   const clip = (a, b) => { const s = Math.max(a, ps), e = Math.min(b, pe); return e > s ? [s, e] : null; };
   let build = null, uatSeg = null, star = null;
-  if (uat !== null && gl !== null) { build = clip(ps, uat); uatSeg = clip(uat, gl); }
-  else if (gl !== null) { build = clip(ps, gl); }
-  else if (uat !== null) { build = clip(ps, uat); uatSeg = clip(uat, pe); }
+  if (start !== null) build = clip(start, buildEnd !== null ? buildEnd : pe);
+  if (uat !== null) uatSeg = clip(uat, gl !== null ? gl : pe);
   if (gl !== null && gl >= ps && gl < pe) star = gl;
   if (!build && !uatSeg && star === null) return null;
   return { build, uat: uatSeg, star };
 }
+
+// 2-week periods (Monday → Friday of the following week) covering the displayed period.
+// The first one starts on the Monday on or before the period start.
+function biweeklyPeriods(period) {
+  const s = period.start;
+  let a = new Date(s.getFullYear(), s.getMonth(), s.getDate() - ((s.getDay() + 6) % 7));
+  const out = [];
+  while (a < period.end) {
+    const b = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 14);
+    const friday = new Date(a.getFullYear(), a.getMonth(), a.getDate() + 11);
+    out.push({ start: a, end: b, friday });
+    a = b;
+  }
+  return out;
+}
+const fmtDayMonth = (d) => `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
 
 function makeSlide() {
   return { shapes: [], links: [], id: 1 };
@@ -1053,32 +1327,31 @@ function groupEntries(entries) {
   }));
 }
 
+// Slide layout rules: every domain starts on a new slide, and a team is never split across
+// two slides (it moves to the next slide whole). The only exception is a team taller than a
+// full slide on its own: it then continues on the next slide, marked "(cont.)".
 function paginateRows(sections, topY, bottomY) {
   const pages = [];
   let page = [], y = topY, curP = null, curD = null, curT = null;
   const seen = new Set();
   const flush = () => { if (page.length) pages.push(page); page = []; y = topY; curP = null; curD = null; curT = null; };
+  const open = (type, name, key, h) => { page.push({ type, name, cont: seen.has(key), y }); seen.add(key); y += h; };
   sections.forEach((p) => {
     const pKey = "P|" + p.name;
     p.domains.forEach((d) => {
       const dKey = pKey + "|" + d.name;
+      flush(); // new domain = new slide
       d.teams.forEach((t) => {
         const tKey = dKey + "|" + t.name;
+        const headersH = () => (curP !== pKey ? PPT.PLAT_H : 0) + (curD !== dKey ? PPT.DOM_H : 0);
+        const teamH = PPT.GRP_H + t.entries.length * PPT.ROW_H;
+        if (page.length && y + headersH() + teamH > bottomY) flush(); // keep the team whole
         t.entries.forEach((e) => {
-          const need = (curP !== pKey ? PPT.PLAT_H : 0) + (curD !== dKey ? PPT.DOM_H : 0) + (curT !== tKey ? PPT.GRP_H : 0) + PPT.ROW_H;
-          if (y + need > bottomY && page.length) flush();
-          if (curP !== pKey) {
-            page.push({ type: "platform", name: p.name, cont: seen.has(pKey), y });
-            seen.add(pKey); curP = pKey; y += PPT.PLAT_H;
-          }
-          if (curD !== dKey) {
-            page.push({ type: "domain", name: d.name, cont: seen.has(dKey), y });
-            seen.add(dKey); curD = dKey; y += PPT.DOM_H;
-          }
-          if (curT !== tKey) {
-            page.push({ type: "team", name: t.name, cont: seen.has(tKey), y });
-            seen.add(tKey); curT = tKey; y += PPT.GRP_H;
-          }
+          const need = headersH() + (curT !== tKey ? PPT.GRP_H : 0) + PPT.ROW_H;
+          if (y + need > bottomY && page.length) flush(); // team taller than a slide
+          if (curP !== pKey) { open("platform", p.name, pKey, PPT.PLAT_H); curP = pKey; }
+          if (curD !== dKey) { open("domain", d.name, dKey, PPT.DOM_H); curD = dKey; }
+          if (curT !== tKey) { open("team", t.name, tKey, PPT.GRP_H); curT = tKey; }
           page.push({ type: "item", entry: e, y });
           y += PPT.ROW_H;
         });
@@ -1090,8 +1363,9 @@ function paginateRows(sections, topY, bottomY) {
 }
 
 function buildTimelinePptx({ items, period, subtitle, now }) {
-  const { W, H, M, TITLE_W, ROW_H, GRP_H, DOM_H, PLAT_H } = PPT;
+  const { W, H, M, TITLE_W, TEAM_W, ROW_H, GRP_H, DOM_H, PLAT_H } = PPT;
   const X0 = M + TITLE_W + 0.1;
+  const FEAT_X = M + TEAM_W + 0.12, FEAT_W = X0 - FEAT_X - 0.1;
   const TL_W = W - M - X0;
   const BOTTOM = H - 0.5;
   const ps = period.start.getTime(), pe = period.end.getTime();
@@ -1104,8 +1378,11 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
   });
 
   const headerTop = 1.12;
-  const quarterH = 0.26, monthH = 0.28;
-  const headerBottom = period.isYear ? headerTop + quarterH + monthH + 0.02 : headerTop + 0.32;
+  const quarterH = 0.26, monthH = period.isYear ? 0.28 : 0.32, sprintH = period.isYear ? 0.22 : 0.26;
+  const monthTop = period.isYear ? headerTop + quarterH + 0.02 : headerTop;
+  const sprintTop = monthTop + monthH + 0.02;
+  const headerBottom = sprintTop + sprintH;
+  const sprints = biweeklyPeriods(period);
   const timelineTop = headerBottom + 0.08;
   const listTop = 1.2;
 
@@ -1138,8 +1415,9 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
       addShape(s, { name: "Legend today", x: lx, y: ly - 0.03, w: 0.02, h: 0.21, fill: PPT.TODAY });
       addText(s, { name: "Legend today label", x: lx + 0.08, y: ly - 0.03, w: 0.5, h: 0.21, paras: [{ runs: [{ t: "Today", sz: 9, color: PPT.INK }] }] });
 
-      // header: quarters (year view) + months
-      addText(s, { name: "Feature header", x: M + 0.1, y: headerBottom - 0.26, w: 2, h: 0.24, paras: [{ runs: [{ t: "Feature", sz: 8, b: true, color: PPT.MUTED }] }] });
+      // header: quarters (year view) + months + 2-week periods
+      addText(s, { name: "Team header", x: M + 0.06, y: headerBottom - 0.26, w: TEAM_W, h: 0.24, paras: [{ runs: [{ t: "Team", sz: 8, b: true, color: PPT.MUTED }] }] });
+      addText(s, { name: "Feature header", x: FEAT_X, y: headerBottom - 0.26, w: 2, h: 0.24, paras: [{ runs: [{ t: "Feature", sz: 8, b: true, color: PPT.MUTED }] }] });
       if (period.isYear) {
         for (let q = 0; q < 4; q++) {
           const a = new Date(currentYear, q * 3, 1).getTime(), b = new Date(currentYear, q * 3 + 3, 1).getTime();
@@ -1148,18 +1426,28 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
       }
       period.months.forEach((m, i) => {
         const a = new Date(currentYear, m, 1).getTime(), b = new Date(currentYear, m + 1, 1).getTime();
-        const y = period.isYear ? headerTop + quarterH + 0.02 : headerTop;
-        const h = period.isYear ? monthH : 0.32;
         addShape(s, {
-          name: `Month ${MONTH_NAMES_EN[m]}`, x: toX(a) + 0.01, y, w: toX(b) - toX(a) - 0.02, h,
+          name: `Month ${MONTH_NAMES_EN[m]}`, x: toX(a) + 0.01, y: monthTop, w: toX(b) - toX(a) - 0.02, h: monthH,
           fill: period.isYear ? "EFE8DE" : hex6(monthColor(period.q, i)),
           paras: [{ algn: "ctr", runs: [{ t: period.isYear ? MONTH_NAMES_EN[m].slice(0, 3) : MONTH_NAMES_EN[m], sz: period.isYear ? 8 : 10, b: !period.isYear, color: period.isYear ? PPT.INK : "FFFFFF" }] }],
         });
       });
-      // month grid
-      period.months.slice(1).forEach((m) => {
-        const x = toX(new Date(currentYear, m, 1).getTime());
-        addShape(s, { name: "Grid", x: x - 0.004, y: headerBottom + 0.02, w: 0.008, h: rowsBottom - headerBottom, fill: PPT.GRID });
+      // 2-week periods: "dd/mm – dd/mm" (Monday → Friday) in the Quarter view, start date only in the Year view (too narrow)
+      sprints.forEach((sp) => {
+        const a = Math.max(sp.start.getTime(), ps), b = Math.min(sp.end.getTime(), pe);
+        const w = toX(b) - toX(a) - 0.02;
+        if (w < 0.12) return; // sliver at the edge of the period: no room for a label
+        const label = period.isYear ? fmtDayMonth(sp.start) : `${fmtDayMonth(sp.start)} – ${fmtDayMonth(sp.friday)}`;
+        addShape(s, {
+          name: `Period ${label}`, x: toX(a) + 0.01, y: sprintTop, w, h: sprintH, fill: PPT.BAND, line: { color: PPT.GRID, w: 0.5 },
+          paras: [{ algn: "ctr", runs: [{ t: label, sz: period.isYear ? 6 : 8, color: PPT.INK }] }],
+        });
+      });
+      // vertical grid: one line every 2 weeks
+      sprints.forEach((sp) => {
+        const t = sp.start.getTime();
+        if (t <= ps || t >= pe) return;
+        addShape(s, { name: "Grid", x: toX(t) - 0.004, y: headerBottom + 0.02, w: 0.008, h: rowsBottom - headerBottom, fill: PPT.GRID });
       });
       // today line
       if (now >= ps && now < pe) {
@@ -1169,30 +1457,40 @@ function buildTimelinePptx({ items, period, subtitle, now }) {
       addText(s, { name: "List note", x: M, y: 1.0, w: W - 2 * M, h: 0.22, paras: [{ runs: [{ t: "No build / UAT / Go Live date falls inside this period for these features.", sz: 9, color: PPT.MUTED }] }] });
     }
 
+    // Team column: one box per team, spanning the rows of its features on this page
+    const teamSpans = [];
+    let span = null;
     pg.rows.forEach((row) => {
+      if (row.type === "team") { span = { row, y0: row.y + GRP_H, y1: row.y + GRP_H }; teamSpans.push(span); }
+      else if (row.type === "item") { if (span) span.y1 = row.y + ROW_H; }
+      else span = null; // a platform/domain row closes the current team
+    });
+    teamSpans.forEach(({ row, y0, y1 }) => {
+      addShape(s, {
+        name: "Team " + row.name, x: M, y: y0 + 0.02, w: TEAM_W, h: y1 - y0 - 0.04, fill: PPT.BAND,
+        paras: [{ runs: [{ t: " " + row.name + (row.cont ? " (cont.)" : ""), sz: 9, b: true, color: PPT.BROWN }] }],
+      });
+    });
+
+    pg.rows.forEach((row) => {
+      // Platform and Domain are short blocks over the left column only (no full-width bands)
       if (row.type === "platform") {
-        addShape(s, { name: "Platform " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: PLAT_H - 0.04, fill: PPT.BROWN, paras: [{ runs: [{ t: " " + row.name + (row.cont ? " (cont.)" : ""), sz: 12, b: true, color: "FFFFFF" }] }] });
+        addShape(s, { name: "Platform " + row.name, x: M, y: row.y + 0.04, w: TITLE_W, h: PLAT_H - 0.08, fill: PPT.BROWN, paras: [{ runs: [{ t: " " + row.name + (row.cont ? " (cont.)" : ""), sz: 12, b: true, color: "FFFFFF" }] }] });
         return;
       }
       if (row.type === "domain") {
-        addShape(s, { name: "Domain " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: DOM_H - 0.04, fill: PPT.DOMAIN, paras: [{ runs: [{ t: "  " + row.name + (row.cont ? " (cont.)" : ""), sz: 10, b: true, color: "FFFFFF" }] }] });
+        addShape(s, { name: "Domain " + row.name, x: M, y: row.y + 0.03, w: TITLE_W, h: DOM_H - 0.06, fill: PPT.DOMAIN, paras: [{ runs: [{ t: " " + row.name + (row.cont ? " (cont.)" : ""), sz: 10, b: true, color: "FFFFFF" }] }] });
         return;
       }
-      if (row.type === "team") {
-        addShape(s, { name: "Team " + row.name, x: M, y: row.y + 0.02, w: W - 2 * M, h: GRP_H - 0.04, fill: PPT.BAND, paras: [{ runs: [{ t: "      " + row.name + (row.cont ? " (cont.)" : ""), sz: 9, b: true, color: PPT.BROWN }] }] });
-        return;
-      }
+      if (row.type === "team") return; // drawn above as a left column
       const { it, seg } = row.entry;
       addText(s, {
-        name: "Feature " + it.key, x: M + 0.1, y: row.y, w: TITLE_W - 0.15, h: ROW_H,
-        paras: [{ runs: [
-          { t: it.key + "  ", sz: 7, color: "8A8A8A" },
-          { t: truncate(it.title, 62), sz: 8, color: PPT.INK, link: it.link },
-        ] }],
+        name: "Feature " + it.key, x: FEAT_X, y: row.y, w: FEAT_W, h: ROW_H,
+        paras: [{ runs: [{ t: truncate(it.title, 90), sz: 8, color: PPT.INK, link: it.link }] }],
       });
       if (!isTimeline) {
-        const txt = (it.uat || it.golive)
-          ? `UAT ${it.uat ? fmtDateLong(it.uat) : "—"}  ·  Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
+        const txt = (it.start || it.uat || it.golive)
+          ? `Build ${it.start ? fmtDateLong(it.start) : "—"}  ·  UAT ${it.uat ? fmtDateLong(it.uat) : "—"}  ·  Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
           : "No dates yet";
         addText(s, { name: "Dates " + it.key, x: X0, y: row.y, w: TL_W, h: ROW_H, paras: [{ runs: [{ t: txt, sz: 8, color: PPT.MUTED }] }] });
         return;
@@ -1265,7 +1563,7 @@ function buildPptxParts(slides) {
   const theme = XML_HEAD +
     `<a:theme xmlns:a="${NS_A}" name="Roadmap"><a:themeElements>` +
     `<a:clrScheme name="Roadmap"><a:dk1><a:srgbClr val="1A1A1A"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="3E2A1E"/></a:dk2><a:lt2><a:srgbClr val="F7F3ED"/></a:lt2>` +
-    `<a:accent1><a:srgbClr val="C08A5C"/></a:accent1><a:accent2><a:srgbClr val="9DBDE8"/></a:accent2><a:accent3><a:srgbClr val="B79CE0"/></a:accent3><a:accent4><a:srgbClr val="F2B01E"/></a:accent4><a:accent5><a:srgbClr val="6B8F71"/></a:accent5><a:accent6><a:srgbClr val="8A8A8A"/></a:accent6>` +
+    `<a:accent1><a:srgbClr val="C08A5C"/></a:accent1><a:accent2><a:srgbClr val="A6A6A6"/></a:accent2><a:accent3><a:srgbClr val="E0BBA0"/></a:accent3><a:accent4><a:srgbClr val="5E9696"/></a:accent4><a:accent5><a:srgbClr val="6B8F71"/></a:accent5><a:accent6><a:srgbClr val="8A8A8A"/></a:accent6>` +
     `<a:hlink><a:srgbClr val="8A5A33"/></a:hlink><a:folHlink><a:srgbClr val="6B6B6B"/></a:folHlink></a:clrScheme>` +
     `<a:fontScheme name="Roadmap"><a:majorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme>` +
     `<a:fmtScheme name="Roadmap"><a:fillStyleLst>${fills}${fills}${fills}</a:fillStyleLst>` +
@@ -1350,8 +1648,8 @@ function buildReleaseNoteDocx({ items, period, subtitle, generated }) {
     teams.forEach(({ team, items: list }) => {
       body.push(para(run(`${team} (${list.length})`), "Heading3"));
       list.slice().sort(byGolive).forEach((it) => {
-        const dates = (it.uat || it.golive)
-          ? `UAT ${it.uat ? fmtDateLong(it.uat) : "—"} → Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
+        const dates = (it.start || it.uat || it.golive)
+          ? `Build ${it.start ? fmtDateLong(it.start) : "—"} → UAT ${it.uat ? fmtDateLong(it.uat) : "—"} → Go Live ${it.golive ? fmtDateLong(it.golive) : "—"}`
           : "Dates to be confirmed";
         const meta = [it.key, it.platform, it.domain !== "Zone" ? it.zone : "", dates, it.status].filter(Boolean).join(" · ");
         const titleRun = it.link
@@ -1441,6 +1739,7 @@ function initFiltersAndPills(items) {
   // available years from the PI field (Year/Quarter placement)
   const years = [...new Set(items.filter((it) => it.year != null).map((it) => it.year))].sort();
   if (years.length === 0) years.push(new Date().getFullYear());
+  availableYears = years;
   currentYear = years.includes(new Date().getFullYear()) ? new Date().getFullYear() : years[0];
 
   const yearPills = document.getElementById("yearPills");
@@ -1470,6 +1769,29 @@ function initFiltersAndPills(items) {
     });
     quarterPills.appendChild(btn);
   });
+}
+
+// Puts the desktop view controls back in line with the state after a change made elsewhere (mobile bar)
+let availableYears = [];
+function syncViewControls() {
+  const isQuarter = currentView === "quarter";
+  [...viewToggle.children].forEach((b) => b.classList.toggle("active", b.dataset.view === currentView));
+  document.getElementById("quarterGroup").style.display = isQuarter ? "inline-flex" : "none";
+  document.getElementById("ndToggle").style.display = isQuarter ? "inline-flex" : "none";
+  [...document.getElementById("yearPills").children].forEach((b) => b.classList.toggle("active", Number(b.textContent) === currentYear));
+  [...document.getElementById("quarterPills").children].forEach((b, i) => b.classList.toggle("active", i === currentQuarter));
+}
+
+function activeFilterCount() {
+  return FILTER_KEYS.filter((k) => filterTotal[k] && filterState[k].size !== filterTotal[k]).length + (searchQuery ? 1 : 0) + (hideUnflagged ? 1 : 0);
+}
+function resetFilters() {
+  FILTER_KEYS.forEach((k) => { if (filterTotal[k]) filterContainer(k).querySelector('[data-action="all"]').click(); });
+  document.getElementById("searchInput").value = "";
+  searchQuery = "";
+  document.getElementById("flaggedOnly").checked = false;
+  hideUnflagged = false;
+  render();
 }
 
 const FILTER_KEYS = ["domain", "team", "zone", "platform", "status", "flag"];
@@ -1548,39 +1870,43 @@ function render() {
   boardEl.classList.add("visible");
 
   // Placement (which year/quarter a card falls into) is driven by the PI field;
-  // Go Live / UAT stay purely informational, displayed dates on each item.
+  // in the Quarter view, the month comes from the Start date (see monthInQuarter).
   // (every loaded item has a valid PI — rows without one are rejected at import)
   const inYear = filtered.filter((it) => it.year === currentYear);
-  if (currentView === "year") renderYear(inYear);
-  else renderQuarter(inYear);
+  if (currentView === "year") renderLanes(yearColumns(inYear));
+  else renderLanes(quarterColumns(inYear, showNotDetailed));
+  if (isMobile()) renderMobile(inYear);
 }
 
 // ---- Year view: one card per quarter (quarter comes from the PI field) ----
-function renderYear(items) {
+function yearColumns(items) {
   const columns = [];
   for (let q = 0; q < 4; q++) {
     const qItems = items.filter((it) => it.quarter === q);
     columns.push({
       label: `Q${q + 1}`,
+      short: `Q${q + 1}`,
       sub: QUARTER_MONTHS_EN[q].join(" "),
       color: quarterColor(q),
+      start: new Date(currentYear, q * 3, 1),
+      end: new Date(currentYear, q * 3 + 3, 1),
       items: qItems,
       showShortDesc: false,
     });
   }
-  renderLanes(columns);
+  return columns;
 }
 
 // ---- Quarter view: one card per month (kept same structure, now a card too) ----
-// Month placement: UAT start month when it falls in the PI quarter, otherwise Go Live month
-// when it does. Tickets with no usable date go to the optional "Not detailed planned" column.
+// Month placement: Start date month when it falls in the PI quarter, otherwise UAT start month,
+// otherwise Go Live month. Tickets with no usable date go to the optional "Not detailed planned" column.
 function monthInQuarter(it, q) {
-  for (const d of [it.uat, it.golive]) {
+  for (const d of [it.start, it.uat, it.golive]) {
     if (d && d.getFullYear() === currentYear && Math.floor(d.getMonth() / 3) === q) return d.getMonth();
   }
   return -1;
 }
-function renderQuarter(items) {
+function quarterColumns(items, withNotDetailed) {
   const q = currentQuarter;
   const placed = items.filter((it) => it.quarter === q).map((it) => ({ it, m: monthInQuarter(it, q) }));
   const columns = [];
@@ -1588,22 +1914,27 @@ function renderQuarter(items) {
     const monthIndex = q * 3 + m;
     columns.push({
       label: `${MONTH_NAMES_EN[monthIndex]} ${String(currentYear).slice(-2)}`,
+      short: MONTH_NAMES_EN[monthIndex].slice(0, 3),
       sub: "",
       color: monthColor(q, m),
+      start: new Date(currentYear, monthIndex, 1),
+      end: new Date(currentYear, monthIndex + 1, 1),
       items: placed.filter((p) => p.m === monthIndex).map((p) => p.it),
       showShortDesc: true,
     });
   }
-  if (showNotDetailed) {
+  if (withNotDetailed) {
     columns.push({
       label: "Not detailed planned",
+      short: "No date",
+      notDetailed: true,
       sub: "",
       color: null,
       items: placed.filter((p) => p.m === -1).map((p) => p.it),
       showShortDesc: true,
     });
   }
-  renderLanes(columns);
+  return columns;
 }
 
 // Items of one swimlane cell, grouped by status (one coloured tag per group)
@@ -1695,7 +2026,7 @@ function renderLanes(columns) {
     head.innerHTML = `<span class="label">${escapeHTML(col.label)}</span>${col.sub ? `<span class="sub">${escapeHTML(col.sub)}</span>` : ""}`;
     const labels = document.createElement("div");
     labels.className = "col-labels";
-    labels.innerHTML = `<div class="col-title">Title</div><div class="col-uat">UAT start</div><div class="col-golive">Go Live</div><div class="col-flag"></div>`;
+    labels.innerHTML = `<div class="col-title">Title</div><div class="col-dates">Build → UAT → Go Live</div>`;
     const wrap = document.createElement("div");
     wrap.className = "lane-colhead";
     wrap.appendChild(head);
@@ -1783,19 +2114,38 @@ function buildItemLine(item, showShortDesc) {
   const tone = item.prioDomain ? " on on-domain" : item.prioSquad ? " on on-squad" : ""; // Domain (violet) overlaps Squad (blue)
   const tip = active.length ? `${active.map((d) => d.label).join(" + ")} — click to edit` : "Flag as priority";
   row.innerHTML = `
-    <div class="col-title">
-      <span>${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a>` : escapeHTML(item.title)}</span>
-      ${showShortDesc && item.shortDesc ? `<span class="il-desc">${escapeHTML(item.shortDesc)}</span>` : ""}
+    <div class="il-head">
+      <div class="col-title">
+        <span>${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a>` : escapeHTML(item.title)}</span>
+        ${showShortDesc && item.shortDesc ? `<span class="il-desc">${escapeHTML(item.shortDesc)}</span>` : ""}
+      </div>
+      <div class="col-flag"><button type="button" class="flag-btn${tone}" data-key="${escapeHTML(item.key)}" title="${escapeHTML(tip)}" aria-label="${escapeHTML(tip)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg></button></div>
     </div>
-    <div class="col-uat">${item.uat ? fmtDateLong(item.uat) : "—"}</div>
-    <div class="col-golive">${item.golive ? fmtDateLong(item.golive) : "—"}</div>
-    <div class="col-flag"><button type="button" class="flag-btn${tone}" data-key="${escapeHTML(item.key)}" title="${escapeHTML(tip)}" aria-label="${escapeHTML(tip)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg></button></div>
+    ${friseHTML(item)}
   `;
   row.querySelector(".flag-btn").addEventListener("click", (e) => {
     e.stopPropagation();
     togglePrioMenu(item, e.currentTarget);
   });
   return row;
+}
+
+// Mini timeline Build → UAT → Go Live (not to scale): a phase is filled when both of its ends are known.
+// The dates shown are always the real JIRA dates, even when they fall outside the column.
+const STAR_SVG = `<svg class="fr-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>`;
+function friseHTML(item) {
+  const { start, uat, golive } = item;
+  const date = (d) => d ? escapeHTML(fmtDateBoard(d)) : `<span class="none">—</span>`;
+  const label = `Build ${start ? fmtDateLong(start) : "—"} → UAT ${uat ? fmtDateLong(uat) : "—"} → Go Live ${golive ? fmtDateLong(golive) : "—"}`;
+  return `
+    <div class="frise" title="${escapeHTML(label)}" aria-label="${escapeHTML(label)}">
+      <span class="fr-pt${start ? " build" : ""}"></span>
+      <span class="fr-seg ${start && (uat || golive) ? "build" : "empty"}"></span>
+      <span class="fr-pt${uat ? " uat" : ""}"></span>
+      <span class="fr-seg ${uat && golive ? "uat" : "empty"}"></span>
+      ${golive ? STAR_SVG : `<span class="fr-pt"></span>`}
+    </div>
+    <div class="fr-dates" aria-hidden="true"><span>${date(start)}</span><span>${date(uat)}</span><span>${date(golive)}</span></div>`;
 }
 
 // ---------------------------------------------------------------------
@@ -1859,11 +2209,426 @@ function fmtDateShort(d) {
 function fmtDateLong(d) {
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
+// Board dates: "04 Aug" within the displayed year, "18 Nov 25" otherwise
+function fmtDateBoard(d) {
+  return d.getFullYear() === currentYear
+    ? fmtDateShort(d)
+    : d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
+}
 function escapeHTML(str) {
   const div = document.createElement("div");
   div.textContent = str ?? "";
   return div.innerHTML;
 }
+
+// ---------------------------------------------------------------------
+// MOBILE — cheat-sheet layout for phones (≤ 760px). Same data, filters and
+// period as the desktop board, but never one endless page:
+//   top bar  = Year | Quarter + ‹ period ›
+//   tabs     = Brief (key figures) · Roadmap (one column + one domain at a
+//              time, teams folded) · Priorities · Filters (bottom sheet)
+//   tap a topic = detail sheet (dates, lane, flags, JIRA link)
+// Only the last tab opened is kept in the browser (localStorage).
+// ---------------------------------------------------------------------
+const mobileMQ = window.matchMedia("(max-width: 760px)");
+const isMobile = () => mobileMQ.matches;
+const M_TAB_STORE = "edr.mobile.tab";
+const M_TABS = ["brief", "roadmap", "prio"];
+const m = {
+  tab: (() => { try { const t = localStorage.getItem(M_TAB_STORE); return M_TABS.includes(t) ? t : "brief"; } catch (e) { return "brief"; } })(),
+  periodKey: "", col: null, domain: "All", toggled: new Set(), more: new Set(), detailKey: null,
+};
+const mView = document.getElementById("mView");
+const mBackdrop = document.getElementById("mBackdrop");
+const mDetail = document.getElementById("mDetail");
+const escAttr = (s) => escapeHTML(s).replace(/"/g, "&quot;");
+
+function resetMobileState() {
+  Object.assign(m, { periodKey: "", col: null, domain: "All", detailKey: null });
+  m.toggled.clear();
+  m.more.clear();
+}
+// Phones open on the current quarter: that is what top management asks about first
+function mobileDefaultPeriod() {
+  const now = new Date();
+  if (currentYear !== now.getFullYear()) return;
+  currentView = "quarter";
+  currentQuarter = Math.floor(now.getMonth() / 3);
+  syncViewControls();
+}
+
+// Status families = the colours of the status tags (see STATUS_COLORS)
+const FAMILIES = [
+  { id: "green", label: "Done" }, { id: "purple", label: "In UAT" }, { id: "blue", label: "In progress" },
+  { id: "gray", label: "Not started / on hold" }, { id: "other", label: "Other" },
+];
+const familyOf = (it) => STATUS_COLORS[normStatus(it.status)] || "other";
+function familyCounts(items) {
+  const c = {};
+  items.forEach((it) => { const f = familyOf(it); c[f] = (c[f] || 0) + 1; });
+  return c;
+}
+function statusBarHTML(items) {
+  const c = familyCounts(items);
+  return `<span class="m-statusbar">${FAMILIES.filter((f) => c[f.id]).map((f) => `<span class="fam-${f.id}" style="flex:${c[f.id]}"></span>`).join("")}</span>`;
+}
+
+const todayStart = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
+function relDays(d) {
+  const n = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - todayStart()) / 86400000);
+  if (n === 0) return "today";
+  if (n === 1) return "tomorrow";
+  if (n === -1) return "yesterday";
+  return n > 0 ? `in ${n} d` : `${-n} d ago`;
+}
+// "Needs attention": a date has passed but the status has not moved on accordingly
+const isClosed = (it) => ["done", "cancelled", "canceled"].includes(normStatus(it.status));
+function attentionReason(it, today) {
+  if (isClosed(it)) return null;
+  const st = it.status || "no status";
+  if (it.golive && it.golive < today) return `Go Live passed (${fmtDateShort(it.golive)}) — still ${st}`;
+  if (it.uat && it.uat < today && familyOf(it) !== "purple") return `UAT due ${fmtDateShort(it.uat)} — still ${st}`;
+  return null;
+}
+const domainRank = (d) => { const i = DOMAIN_ORDER.indexOf(d); return i === -1 ? 99 : i; };
+function sortedDomains(items) {
+  return [...new Set(items.map((it) => laneOf(it).domain))].sort((a, b) => domainRank(a) - domainRank(b) || a.localeCompare(b));
+}
+
+const FLAG_PATH = `<path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/>`;
+function flagIconHTML(kind) {
+  return `<svg class="m-flag ${kind}" viewBox="0 0 16 16" role="img" aria-label="${kind === "domain" ? "Prio Domain" : "Prio Squad"}">${FLAG_PATH}</svg>`;
+}
+function mCardHTML(it, { team = true, note = "", alert = false } = {}) {
+  const flag = it.prioDomain ? "domain" : it.prioSquad ? "squad" : "";
+  return `<div class="m-card" role="button" tabindex="0" data-key="${escAttr(it.key)}">
+    <div class="m-card-head"><span class="m-card-title">${escapeHTML(it.title)}</span>${flag ? flagIconHTML(flag) : ""}</div>
+    <div class="m-card-meta">${statusTagHTML(it.status)}${team ? `<span>${escapeHTML(laneOf(it).team)}</span>` : ""}</div>
+    ${note ? `<div class="m-card-note${alert ? " alert" : ""}">${escapeHTML(note)}</div>` : ""}
+    ${friseHTML(it)}
+  </div>`;
+}
+// First 5 cards, then a "Show all" button (expanded state kept until the period changes)
+function mListHTML(key, items, noteFn, alert) {
+  const shown = m.more.has(key) ? items : items.slice(0, 5);
+  return shown.map((it) => mCardHTML(it, { note: noteFn(it), alert })).join("") +
+    (shown.length < items.length ? `<button type="button" class="m-more" data-more="${key}">Show all (${items.length})</button>` : "");
+}
+
+function mPeriodSteps() {
+  return currentView === "year"
+    ? availableYears.map((y) => ({ y, q: currentQuarter }))
+    : availableYears.flatMap((y) => [0, 1, 2, 3].map((q) => ({ y, q })));
+}
+const mPeriodIndex = (steps) => steps.findIndex((s) => s.y === currentYear && (currentView === "year" || s.q === currentQuarter));
+function mStep(delta) {
+  const steps = mPeriodSteps();
+  const next = steps[mPeriodIndex(steps) + delta];
+  if (!next) return;
+  currentYear = next.y;
+  currentQuarter = next.q;
+  syncViewControls();
+  render();
+}
+
+function renderMobile(inYear) {
+  const pk = `${currentView}|${currentYear}|${currentQuarter}`;
+  if (pk !== m.periodKey) { m.periodKey = pk; m.col = null; m.toggled.clear(); m.more.clear(); }
+
+  document.querySelectorAll("#mViewSeg button").forEach((b) => b.classList.toggle("active", b.dataset.view === currentView));
+  document.getElementById("mPeriodLabel").textContent = periodInfo().label;
+  const steps = mPeriodSteps(), i = mPeriodIndex(steps);
+  document.getElementById("mPrev").disabled = i <= 0;
+  document.getElementById("mNext").disabled = i === -1 || i >= steps.length - 1;
+
+  document.querySelectorAll("#mTabBar button[data-tab]").forEach((b) => b.classList.toggle("active", b.dataset.tab === m.tab));
+  const nf = mFilterCount();
+  const badge = document.getElementById("mFilterBadge");
+  badge.textContent = nf;
+  badge.classList.toggle("on", nf > 0);
+  if (document.activeElement !== mSearch) mSearch.value = document.getElementById("searchInput").value;
+
+  const banner = nf ? `<div class="m-filter-note"><span>${nf} filter${nf > 1 ? "s" : ""} active</span><button type="button" class="link-btn" data-act="reset">Reset</button></div>` : "";
+  const body = m.tab === "roadmap" ? mRoadmapHTML(inYear) : m.tab === "prio" ? mPrioHTML() : mBriefHTML();
+  mView.innerHTML = banner + body;
+  if (m.detailKey) mRenderDetail();
+  if (mFilters.classList.contains("on")) mRenderFilters();
+}
+
+// ---- Brief: the cheat sheet of the period ----
+function mBriefHTML() {
+  const items = periodItems();
+  const period = periodInfo();
+  const head = `<p class="m-hint">${escapeHTML(periodRangeText(period))}</p>`;
+  if (!items.length) {
+    return head + `<div class="m-empty">${searchQuery ? "No topic matches this search" : "Nothing planned"} in ${escapeHTML(period.label)}${mFilterCount() ? " with the current filters" : ""}.</div>`;
+  }
+  // A search answers "where is topic X?": its results come first
+  const results = searchQuery
+    ? `<section class="m-section" style="margin-top:0"><h2>Search results<b>${items.length}</b></h2>${mListHTML("search", sortByGoLive(items), () => "")}</section>`
+    : "";
+
+  const today = todayStart();
+  const golives = items.filter((it) => it.golive && it.golive >= period.start && it.golive < period.end);
+  const flagged = items.filter((it) => it.prioSquad || it.prioDomain);
+  const attention = sortByGoLive(items.filter((it) => attentionReason(it, today)));
+  const tile = (goto, value, label, cls = "") =>
+    `<div class="m-tile${cls}" role="button" tabindex="0" data-goto="${goto}"><div class="v">${value}</div><div class="l">${label}</div></div>`;
+  const tiles = `<div class="m-tiles">
+    ${tile("next", golives.length, "Go-lives planned")}
+    ${tile("prio", flagged.length, "Priority topics")}
+    ${tile("attention", attention.length, "Need attention", attention.length ? " alert" : "")}
+  </div>`;
+
+  const c = familyCounts(items);
+  const status = `<section class="m-section"><h2>Status</h2>${statusBarHTML(items)}
+    <div class="m-legend">${FAMILIES.filter((f) => c[f.id]).map((f) => `<span><i class="fam-${f.id}"></i>${f.label} <b>${c[f.id]}</b></span>`).join("")}</div></section>`;
+
+  let nextTitle = "Next go-lives";
+  let next = sortByGoLive(items.filter((it) => it.golive && it.golive >= today));
+  if (!next.length) { nextTitle = "Latest go-lives"; next = sortByGoLive(items.filter((it) => it.golive)).reverse(); }
+  const nextSec = `<section class="m-section" id="m-sec-next"><h2>${nextTitle}<b>${next.length}</b></h2>
+    ${next.length ? mListHTML("next", next, (it) => `Go Live ${fmtDateShort(it.golive)} · ${relDays(it.golive)}`) : `<div class="m-empty small">No Go Live date in this period yet.</div>`}</section>`;
+
+  const attSec = `<section class="m-section" id="m-sec-attention"><h2>Needs attention<b>${attention.length}</b></h2>
+    <p class="m-hint">Go Live date passed, or UAT start passed, while the status has not moved on.</p>
+    ${attention.length ? mListHTML("attention", attention, (it) => attentionReason(it, today), true) : `<div class="m-empty small">Nothing late: dates and statuses are consistent.</div>`}</section>`;
+
+  const domRows = sortedDomains(items).map((d) => {
+    const list = items.filter((it) => laneOf(it).domain === d);
+    return `<div class="m-dom-row" role="button" tabindex="0" data-goto-domain="${escAttr(d)}"><span>${escapeHTML(d)}</span>${statusBarHTML(list)}<b>${list.length}</b><span class="chev">›</span></div>`;
+  }).join("");
+  const domSec = `<section class="m-section"><h2>By domain</h2>${domRows}</section>`;
+
+  return head + results + tiles + status + nextSec + attSec + domSec;
+}
+
+// ---- Roadmap: one column (quarter or month) and one domain at a time, teams folded ----
+function mRoadmapHTML(inYear) {
+  const cols = (currentView === "year" ? yearColumns(inYear) : quarterColumns(inYear, true))
+    .filter((c) => !c.notDetailed || c.items.length); // "No date" only when it holds topics
+  const doms = sortedDomains(cols.flatMap((c) => c.items));
+  if (m.domain !== "All" && !doms.includes(m.domain)) m.domain = "All";
+  const inDomain = (it) => m.domain === "All" || laneOf(it).domain === m.domain;
+
+  if (m.col == null || m.col >= cols.length) {
+    const now = Date.now();
+    const todayCol = cols.findIndex((c) => c.start && c.start.getTime() <= now && now < c.end.getTime());
+    const has = (c) => c.items.some(inDomain);
+    const firstFull = cols.findIndex(has);
+    m.col = todayCol !== -1 && has(cols[todayCol]) ? todayCol : firstFull !== -1 ? firstFull : Math.max(todayCol, 0);
+  }
+  const col = cols[m.col];
+  const seg = `<div class="m-colseg">${cols.map((c, i) =>
+    `<button type="button" data-col="${i}" class="${i === m.col ? "active" : ""}">${escapeHTML(c.short)}</button>`).join("")}</div>`;
+  const chip = (value, label, count) =>
+    `<button type="button" class="m-chip${value === m.domain ? " active" : ""}${count ? "" : " zero"}" data-dom="${escAttr(value)}">${escapeHTML(label)}<small>${count}</small></button>`;
+  const chips = `<div class="m-chips">${chip("All", "All domains", col.items.length)}${doms.map((d) => chip(d, d, col.items.filter((it) => laneOf(it).domain === d).length)).join("")}</div>`;
+
+  const list = col.items.filter(inDomain);
+  if (!list.length) {
+    return seg + chips + `<div class="m-empty">Nothing ${m.domain === "All" ? "" : `for ${escapeHTML(m.domain)} `}in ${escapeHTML(col.label)}.</div>`;
+  }
+  const autoOpen = list.length <= 6; // few topics: everything unfolded
+  const body = sortedSections(list).map(({ platform, lanes }) =>
+    `<div class="m-platform">${escapeHTML(platform)}</div>` +
+    lanes.map(({ domain, teams }) =>
+      (m.domain === "All" ? `<div class="m-domain">${escapeHTML(domain)}</div>` : "") +
+      teams.map(({ team, items }) => {
+        const k = `${platform}|${domain}|${team}`;
+        const open = m.toggled.has(k) ? !autoOpen : autoOpen;
+        const cards = open ? `<div class="m-team-body">${groupByStatus(items).flatMap((g) => g.its).map((it) => mCardHTML(it, { team: false })).join("")}</div>` : "";
+        return `<div class="m-team${open ? " open" : ""}"><button type="button" class="m-team-head" data-team="${escAttr(k)}" aria-expanded="${open}">
+          <span>${escapeHTML(team)}</span>${statusBarHTML(items)}<span class="count">${items.length}</span><span class="chev">›</span></button>${cards}</div>`;
+      }).join("")
+    ).join("")
+  ).join("");
+  return seg + chips + body;
+}
+
+// ---- Priorities: flagged topics of the period, Prio Domain first ----
+function mPrioHTML() {
+  const items = periodItems();
+  const period = periodInfo();
+  const dom = sortByGoLive(items.filter((it) => it.prioDomain));
+  const squad = sortByGoLive(items.filter((it) => it.prioSquad && !it.prioDomain));
+  const head = `<p class="m-hint">${escapeHTML(periodRangeText(period))}</p>`;
+  if (!dom.length && !squad.length) {
+    return head + `<div class="m-empty">No priority topic in ${escapeHTML(period.label)}.<br>Open a topic to flag it as Prio Squad or Prio Domain.</div>`;
+  }
+  const sec = (title, kind, list) => list.length
+    ? `<section class="m-section"><h2><span>${flagIconHTML(kind)}${title}</span><b>${list.length}</b></h2>${list.map((it) => mCardHTML(it)).join("")}</section>`
+    : "";
+  return head + sec("Prio Domain", "domain", dom) + sec("Prio Squad", "squad", squad);
+}
+
+// ---- Detail sheet ----
+function mRenderDetail() {
+  const it = allItems.find((x) => x.key === m.detailKey);
+  if (!it) return mCloseSheets();
+  const why = attentionReason(it, todayStart());
+  const row = (cls, label, d) =>
+    `<li><span class="m-tl-dot ${d ? cls : ""}"></span><span>${label}</span><b>${d ? escapeHTML(fmtDateLong(d)) : "—"}</b>${d ? `<small>${relDays(d)}</small>` : ""}</li>`;
+  const { domain, team } = laneOf(it);
+  const facts = [["Platform", platformOf(it)], ["Domain", domain], ["Team", team], ["Zones", it.zone || "—"], ["PI", `Q${it.quarter + 1} ${it.year}`]];
+  mDetail.innerHTML = `
+    <div class="m-grip"></div>
+    <div class="m-sheet-head">
+      <div><div class="m-key">${escapeHTML(it.key)}</div><h2>${escapeHTML(it.title)}</h2>${statusTagHTML(it.status)}</div>
+      <button type="button" class="m-x" data-close aria-label="Close">✕</button>
+    </div>
+    ${why ? `<div class="m-card-note alert m-why">⚠ ${escapeHTML(why)}</div>` : ""}
+    <ul class="m-tl">${row("build", "Build start", it.start)}${row("uat", "UAT start", it.uat)}${row("star", "Go Live", it.golive)}</ul>
+    <dl class="m-dl">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHTML(v)}</dd>`).join("")}</dl>
+    <div class="m-flags">${PRIO_DEFS.map((d) => `<label><input type="checkbox" data-prop="${d.prop}"${it[d.prop] ? " checked" : ""}><span class="pm-dot" style="background:${d.color}"></span>${d.label}</label>`).join("")}</div>
+    <p class="m-note">Flags last for this session only: not saved, not sent to JIRA.</p>
+    ${it.link ? `<a class="m-primary" href="${escAttr(it.link)}" target="_blank" rel="noopener">Open in JIRA ↗</a>` : ""}`;
+}
+
+// ---- Filters sheet: level 1 = one row per filter, level 2 = the options of one filter.
+// It drives the desktop controls (same checkboxes, same buttons), so both stay in sync.
+const FILTER_LABELS = { domain: "Domain", team: "Team", zone: "Zone", platform: "Platform", status: "Status", flag: "Flag" };
+const mFilterCount = () => activeFilterCount() - (searchQuery ? 1 : 0); // the search has its own bar
+function filterOptions(key) {
+  return [...filterContainer(key).querySelectorAll(".ms-option input")];
+}
+function filterSummary(key) {
+  const sel = filterState[key];
+  if (sel.size === filterTotal[key]) return "All";
+  if (sel.size === 0) return "None";
+  return sel.size === 1 ? [...sel][0] : `${sel.size} of ${filterTotal[key]}`;
+}
+function mRenderFilters() {
+  const prevBody = mFilters.querySelector(".m-fs-body");
+  const keepScroll = prevBody && mFilters.dataset.level === (m.filterLevel || "") ? prevBody.scrollTop : 0;
+  const n = periodItems().length;
+  const foot = `<div class="m-fs-foot"><button type="button" class="m-primary" data-fact="apply">Show ${n} topic${n === 1 ? "" : "s"}</button></div>`;
+  const key = m.filterLevel;
+  let head, body;
+  if (key) {
+    head = `<button type="button" class="m-back" data-fact="back">‹ Filters</button><h2>${FILTER_LABELS[key]}</h2><span></span>`;
+    body = `<div class="m-fs-actions"><button type="button" class="link-btn" data-fact="all">Select all</button><button type="button" class="link-btn" data-fact="none">Clear</button></div>` +
+      filterOptions(key).map((cb, i) =>
+        `<label class="m-opt${cb.disabled ? " off" : ""}"><input type="checkbox" data-opt="${i}"${cb.checked ? " checked" : ""}${cb.disabled ? " disabled" : ""}><span>${escapeHTML(cb.value)}</span></label>`).join("");
+  } else {
+    head = `<span></span><h2>Filters</h2><button type="button" class="m-x" data-fact="close" aria-label="Close filters">✕</button>`;
+    body = FILTER_KEYS.filter((k) => filterTotal[k]).map((k) =>
+      `<button type="button" class="m-fs-row${filterState[k].size !== filterTotal[k] ? " narrowed" : ""}" data-flevel="${k}"><span>${FILTER_LABELS[k]}</span><span class="val">${escapeHTML(filterSummary(k))}</span><span class="chev">›</span></button>`).join("") +
+      `<label class="m-fs-row m-switch"><span>Flagged topics only</span><input type="checkbox" data-fact="flagged"${hideUnflagged ? " checked" : ""}></label>` +
+      (mFilterCount() ? `<button type="button" class="link-btn m-fs-reset" data-fact="reset">Reset all filters</button>` : "") +
+      `<div class="m-data"><span>${escapeHTML(fileInfo.textContent)}</span><button type="button" class="m-secondary" data-fact="import">Import another CSV</button></div>`;
+  }
+  mFilters.dataset.level = key || "";
+  mFilters.innerHTML = `<div class="m-fs-top"><div class="m-grip"></div><div class="m-fs-head">${head}</div></div><div class="m-fs-body">${body}</div>${foot}`;
+  mFilters.querySelector(".m-fs-body").scrollTop = keepScroll;
+}
+
+// ---- Sheets (detail / filters): the phone's Back button closes them ----
+const mFilters = document.getElementById("mFilters");
+const mSearch = document.getElementById("mSearch");
+const mSheetOpen = () => mBackdrop.classList.contains("on");
+function mOpenSheet(kind) {
+  mBackdrop.classList.add("on");
+  document.body.classList.add("m-locked");
+  if (kind === "filters") { m.filterLevel = null; mRenderFilters(); mFilters.classList.add("on"); }
+  else mDetail.classList.add("on");
+  try { if (!(history.state && history.state.mSheet)) history.pushState({ mSheet: true }, ""); } catch (e) { /* file:// on some browsers */ }
+}
+function mCloseSheets(fromHistory) {
+  if (!mSheetOpen()) return;
+  if (!fromHistory && history.state && history.state.mSheet) { history.back(); return; } // popstate closes
+  m.detailKey = null;
+  mBackdrop.classList.remove("on");
+  mDetail.classList.remove("on");
+  mFilters.classList.remove("on");
+  document.body.classList.remove("m-locked");
+}
+window.addEventListener("popstate", () => mCloseSheets(true));
+mBackdrop.addEventListener("click", () => mCloseSheets());
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !tour) mCloseSheets(); });
+mobileMQ.addEventListener("change", () => { mCloseSheets(true); if (allItems.length) render(); });
+
+function setMobileTab(tab) {
+  m.tab = tab;
+  try { localStorage.setItem(M_TAB_STORE, tab); } catch (e) { /* storage blocked: tab not remembered */ }
+  render();
+  window.scrollTo(0, 0);
+}
+
+document.getElementById("mTabBar").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-tab]");
+  if (!b) return;
+  e.stopPropagation();
+  if (b.dataset.tab === "filters") mOpenSheet("filters");
+  else setMobileTab(b.dataset.tab);
+});
+document.getElementById("mViewSeg").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-view]");
+  if (!b || b.dataset.view === currentView) return;
+  currentView = b.dataset.view;
+  syncViewControls();
+  render();
+});
+document.getElementById("mPrev").addEventListener("click", () => mStep(-1));
+document.getElementById("mNext").addEventListener("click", () => mStep(1));
+
+mView.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-key],[data-goto],[data-goto-domain],[data-col],[data-dom],[data-team],[data-more],[data-act]");
+  if (!t) return;
+  const d = t.dataset;
+  if (d.key) { m.detailKey = d.key; mRenderDetail(); mOpenSheet("detail"); }
+  else if (d.gotoDomain != null) { m.domain = d.gotoDomain; m.col = null; m.toggled.clear(); setMobileTab("roadmap"); }
+  else if (d.goto === "prio" || d.goto === "roadmap") setMobileTab(d.goto);
+  else if (d.goto) document.getElementById("m-sec-" + d.goto)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  else if (d.col != null) { m.col = Number(d.col); m.toggled.clear(); render(); }
+  else if (d.dom != null) { m.domain = d.dom; m.toggled.clear(); render(); }
+  else if (d.team) { if (!m.toggled.delete(d.team)) m.toggled.add(d.team); render(); }
+  else if (d.more) { m.more.add(d.more); render(); }
+  else if (d.act === "reset") resetFilters();
+});
+mView.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches('[role="button"]')) { e.preventDefault(); e.target.click(); }
+});
+
+mDetail.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) mCloseSheets(); });
+mDetail.addEventListener("change", (e) => {
+  const cb = e.target.closest("input[data-prop]");
+  const it = allItems.find((x) => x.key === m.detailKey);
+  if (!cb || !it) return;
+  it[cb.dataset.prop] = cb.checked;
+  render();
+});
+
+mFilters.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-flevel],button[data-fact]");
+  if (!t) return;
+  e.stopPropagation();
+  if (t.dataset.flevel) { m.filterLevel = t.dataset.flevel; mRenderFilters(); return; }
+  const act = t.dataset.fact;
+  if (act === "back") { m.filterLevel = null; mRenderFilters(); }
+  else if (act === "close" || act === "apply") { mCloseSheets(); window.scrollTo(0, 0); }
+  else if (act === "all" || act === "none") filterContainer(m.filterLevel).querySelector(`[data-action="${act}"]`).click();
+  else if (act === "reset") resetFilters();
+  else if (act === "import") { mCloseSheets(); fileInput.click(); }
+});
+mFilters.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.dataset.opt != null) filterOptions(m.filterLevel)[Number(t.dataset.opt)]?.click(); // desktop checkbox: updates state + renders
+  else if (t.dataset.fact === "flagged") document.getElementById("flaggedOnly").click();
+});
+
+// Mobile search bar = the desktop search field (same query, same filtering)
+mSearch.addEventListener("input", () => {
+  const desk = document.getElementById("searchInput");
+  desk.value = mSearch.value;
+  m.col = null; // jump to a column that has matches
+  m.toggled.clear();
+  m.more.delete("search");
+  desk.dispatchEvent(new Event("input"));
+});
+mSearch.addEventListener("keydown", (e) => { if (e.key === "Enter") mSearch.blur(); }); // hides the keyboard
+
+document.getElementById("mGuideBtn").addEventListener("click", (e) => { e.stopPropagation(); startTour("app"); });
 
 // ---------------------------------------------------------------------
 // SAMPLE DATA — fictional topics, built as a JIRA-like CSV and run through
@@ -1876,28 +2641,28 @@ function buildSampleCSV() {
   const d = (day, month, yearOffset = 0) => `${String(day).padStart(2, "0")}/${MON[month - 1]}/${String(Y + yearOffset).slice(-2)} 12:00 AM`;
   // Fictional product: a city bike-sharing service, unrelated to the real backlog.
   const WEB = "Tribe - Web -> Squad - ", MOB = "Tribe - Mobile -> Squad - ";
-  // [summary, tribe & squad, PI, status, UAT start, Go Live, zones, labels]
+  // [summary, tribe & squad, PI, status, Start date, UAT start, Go Live, zones, labels]
   const rows = [
-    ["Unlock a bike by scanning its QR code", MOB + "Ride", `${Y}Q1`, "Done", d(12, 2), d(10, 3), ["All"], ["prio_domain"]],
-    ["Live map of available bikes", MOB + "Trip Planning", `${Y}Q1`, "Done", d(20, 1), d(18, 2), ["North", "Riverside"], []],
-    ["Monthly pass subscription", WEB + "Memberships", `${Y}Q2`, "Done", d(14, 4), d(26, 5), ["All"], ["prio_squad"]],
-    ["Battery level shown for e-bikes", MOB + "Ride", `${Y}Q2`, "UAT", d(2, 6), d(30, 6), ["North", "South"], ["prio_domain"]],
-    ["Report a damaged bike with photo", MOB + "Maintenance", `${Y}Q3`, "UAT", d(8, 7), d(5, 8), ["South"], []],
-    ["Route suggestions with bike lanes", WEB + "Trip Planning", `${Y}Q3`, "Build", d(3, 9), d(29, 9), ["All"], ["prio_squad"]],
-    ["Station rebalancing dashboard", WEB + "Stations", `${Y}Q3`, "Build", d(18, 8), d(15, 9), ["Riverside"], []],
-    ["Predictive maintenance alerts", WEB + "Maintenance", `${Y}Q4`, "Build", d(6, 10), d(10, 11), ["All"], ["prio_domain"]],
-    ["Reserve a bike 10 minutes ahead", MOB + "Ride", `${Y}Q4`, "Ready to dev", d(2, 11), d(1, 12), ["North"], []],
-    ["Carbon savings tracker", MOB + "Memberships", `${Y}Q4`, "Solution design", "", "", ["All"], []],
-    ["New stations around the university campus", "Zone - Campus", `${Y}Q4`, "Ready to dev", d(16, 11), d(14, 12), [], ["prio_squad"]],
-    ["Group rides for up to 4 bikes", MOB + "Trip Planning", `${Y + 1}Q1`, "New", "", "", ["North", "South"], []],
-    ["Smart dock firmware update", WEB + "Stations", `${Y + 1}Q2`, "New", "", "", ["All"], []],
+    ["Unlock a bike by scanning its QR code", MOB + "Ride", `${Y}Q1`, "Done", d(5, 1), d(12, 2), d(10, 3), ["All"], ["prio_domain"]],
+    ["Live map of available bikes", MOB + "Trip Planning", `${Y}Q1`, "Done", d(1, 12, -1), d(20, 1), d(18, 2), ["North", "Riverside"], []],
+    ["Monthly pass subscription", WEB + "Memberships", `${Y}Q2`, "Done", d(2, 3), d(14, 4), d(26, 5), ["All"], ["prio_squad"]],
+    ["Battery level shown for e-bikes", MOB + "Ride", `${Y}Q2`, "UAT", d(4, 5), d(2, 6), d(30, 6), ["North", "South"], ["prio_domain"]],
+    ["Report a damaged bike with photo", MOB + "Maintenance", `${Y}Q3`, "UAT", d(9, 6), d(8, 7), d(5, 8), ["South"], []],
+    ["Route suggestions with bike lanes", WEB + "Trip Planning", `${Y}Q3`, "Build", d(4, 8), d(3, 9), d(29, 9), ["All"], ["prio_squad"]],
+    ["Station rebalancing dashboard", WEB + "Stations", `${Y}Q3`, "Build", d(13, 7), d(18, 8), d(15, 9), ["Riverside"], []],
+    ["Predictive maintenance alerts", WEB + "Maintenance", `${Y}Q4`, "Build", d(1, 9), d(6, 10), d(10, 11), ["All"], ["prio_domain"]],
+    ["Reserve a bike 10 minutes ahead", MOB + "Ride", `${Y}Q4`, "Ready to dev", d(6, 10), d(2, 11), d(1, 12), ["North"], []],
+    ["Carbon savings tracker", MOB + "Memberships", `${Y}Q4`, "Solution design", "", "", "", ["All"], []],
+    ["New stations around the university campus", "Zone - Campus", `${Y}Q4`, "Ready to dev", "", d(16, 11), d(14, 12), [], ["prio_squad"]],
+    ["Group rides for up to 4 bikes", MOB + "Trip Planning", `${Y + 1}Q1`, "New", "", "", "", ["North", "South"], []],
+    ["Smart dock firmware update", WEB + "Stations", `${Y + 1}Q2`, "New", "", "", "", ["All"], []],
   ];
   const cell = (v) => `"${String(v).replace(/"/g, '""')}"`;
-  const header = ["Issue Type", "Issue key", "Issue id", "Summary", "Tribe & Squad / Domain", "PI", "Status", "UAT start", "Go Live",
+  const header = ["Issue Type", "Issue key", "Issue id", "Summary", "Tribe & Squad / Domain", "PI", "Status", "Start date", "UAT start", "Go Live",
     "Impacted Zones", "Impacted Zones", "Labels", "Labels"];
   const lines = [header.map(cell).join(",")];
-  rows.forEach(([title, tribe, pi, status, uat, golive, zones, labels], i) => {
-    lines.push(["Epic", `DEMO-${101 + i}`, 900 + i, title, tribe, pi, status, uat, golive,
+  rows.forEach(([title, tribe, pi, status, start, uat, golive, zones, labels], i) => {
+    lines.push(["Epic", `DEMO-${101 + i}`, 900 + i, title, tribe, pi, status, start, uat, golive,
       zones[0] || "", zones[1] || "", labels[0] || "", labels[1] || ""].map(cell).join(","));
   });
   return lines.join("\n");
@@ -1957,11 +2722,20 @@ const TOURS = {
     { target: "#yearPills", title: "Pick the period",
       body: "Choose the year to display (and the quarter, in Quarter view). Topics are placed according to their PI field." },
     { target: "#board", title: "Read the roadmap",
-      body: "Topics are grouped by platform, domain and team, then by status, with their UAT start and Go Live dates. Click a title to open it in JIRA." },
+      body: "Topics are grouped by platform, domain and team, then by status. Each topic shows a mini timeline: Build start, UAT start and Go Live (star). Click a title to open it in JIRA." },
     { target: "#exportBtn", title: "Export",
       body: "Download as CSV, a PowerPoint timeline or a Word release note. Exports follow your filters; PowerPoint and Word also follow the period displayed." },
     { target: "#guideBtn", title: "Replay the tour",
       body: "Click here at any time to see this tour again." },
+    // Phone steps (their targets only exist on a phone; desktop steps above are skipped there)
+    { target: "#mTop", title: "Search and pick the period",
+      body: "Type a few words or a JIRA key to find a topic. Below, switch between <strong>Year</strong> and <strong>Quarter</strong> and use the arrows to move from one period to the next." },
+    { target: "#mTabBar", title: "Four tabs, no endless scrolling",
+      body: "<strong>Brief</strong>: the key figures at a glance. <strong>Roadmap</strong>: one column and one domain at a time, teams folded. <strong>Priorities</strong>: flagged topics. <strong>Filters</strong>: narrow down by domain, team, zone, status…" },
+    { target: () => document.querySelector("#mView .m-card, #mView .m-dom-row"), title: "Tap to drill down",
+      body: "Tap a domain to open it in the Roadmap tab, or a topic to see its dates, team and zones, flag it as a priority or open it in JIRA." },
+    { target: "#mGuideBtn", title: "Replay the tour",
+      body: "Tap here at any time to see this tour again." },
   ],
 };
 
