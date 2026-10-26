@@ -76,8 +76,8 @@
   /* Two clearly labelled zones: FILTERS (which topics) and VIEW (how/when they are displayed) */
   .panel { align-items: center; gap: 14px 22px; flex-wrap: wrap; padding: 12px 18px; border: 1px solid var(--color-border); border-radius: 14px; margin-bottom: 12px; }
   .panel-title { flex: 0 0 150px; }
-  .panel-title .pt-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text); }
-  .panel-title .pt-name svg { width: 16px; height: 16px; stroke: var(--pill-active-bg); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .panel-title .pt-name, .brief-head .pt-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text); }
+  .panel-title .pt-name svg, .brief-head .pt-name svg { width: 16px; height: 16px; stroke: var(--pill-active-bg); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .panel-title .pt-hint { font-size: 11.5px; color: var(--color-muted); margin-top: 2px; }
   #toolbar { display: none; background: #fff; }
   #toolbar.visible { display: flex; }
@@ -242,6 +242,48 @@
   .lane-cell .status-group { padding-bottom: 4px; }
   .lane-cell .status-group + .status-group { margin-top: 2px; }
   .lanes-empty { padding: 24px; font-size: 13px; color: var(--color-muted); font-style: italic; }
+  .il-alert { font-size: 11px; font-weight: 600; color: #a13327; }
+  .item-line.flash { animation: il-flash 1.6s ease-out; }
+  @keyframes il-flash { 0%, 40% { background: #f6ece2; box-shadow: inset 3px 0 0 var(--pill-active-bg); } 100% { background: transparent; } }
+
+  /* ---- Desktop Brief: the key figures of the period, above the board (same figures as the phone Brief tab) ---- */
+  .brief { display: none; border: 1px solid var(--color-border); border-radius: 14px; background: #fff; padding: 12px 18px 16px; margin-bottom: 18px; }
+  .brief.visible { display: block; }
+  .brief-head { display: flex; align-items: center; gap: 14px; }
+  .brief-head .pt-hint { flex: 1; font-size: 12px; color: var(--color-muted); }
+  .brief-head .link-btn { font-size: 13px; }
+  .brief.collapsed { padding-bottom: 12px; }
+  .brief.collapsed .brief-body { display: none; }
+  .brief-body { margin-top: 12px; }
+  .brief-top { display: grid; grid-template-columns: repeat(3, 150px) 1fr; gap: 10px; align-items: stretch; }
+  .brief .m-tile { cursor: default; }
+  .brief .m-tile[role="button"] { cursor: pointer; }
+  .brief .m-tile[role="button"]:hover { border-color: var(--pill-active-bg); }
+  .brief .m-tile.on { border-color: var(--pill-active-bg); background: #f6ece2; }
+  .brief-status { border: 1px solid var(--color-border); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+  .brief-status h3, .brief-col h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); margin: 0 0 8px; }
+  .brief-col h3 b { color: var(--color-text); font-size: 13px; }
+  .brief-cols { display: grid; grid-template-columns: 1.15fr 1.15fr .8fr; gap: 22px; margin-top: 16px; }
+  .brief-col .m-hint { margin: -4px 0 8px; font-size: 11.5px; }
+  .b-row { display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; }
+  .b-row + .b-row { border-top: 1px dashed var(--color-border); border-radius: 0; }
+  .b-row:hover { background: var(--card-bg); }
+  .b-row-head { display: flex; align-items: flex-start; gap: 6px; font-weight: 600; line-height: 1.3; }
+  .b-row-head > span { flex: 1; min-width: 0; }
+  .b-row-head a { color: inherit; text-decoration: underline; text-decoration-color: var(--color-border); }
+  .b-row-head a:hover { text-decoration-color: var(--pill-active-bg); }
+  .b-row-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 11.5px; color: var(--color-muted); }
+  .b-note { font-weight: 600; color: var(--grad-dark); }
+  .b-note.alert { color: #a13327; }
+  .brief .m-more { padding: 7px; font-size: 12.5px; }
+  .brief .m-empty.small { padding: 8px 10px; font-size: 12.5px; }
+  .brief .m-dom-row { grid-template-columns: 1fr 70px 28px 10px; padding: 9px 2px; font-size: 13px; }
+  .brief .m-dom-row:hover span:first-child { color: var(--pill-active-bg); }
+  @media (max-width: 1100px) {
+    .brief-top { grid-template-columns: repeat(3, 1fr); }
+    .brief-status { grid-column: 1 / -1; }
+    .brief-cols { grid-template-columns: 1fr 1fr; }
+  }
 
 
   /* ---- Sample data + guided tour ---- */
@@ -444,7 +486,7 @@
 
   /* ---- Vertical printable (release-note style) ---- */
   @media print {
-    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .flag-btn, .prio-menu, .sample-row, #guideBtn { display: none !important; }
+    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .brief, .flag-btn, .prio-menu, .sample-row, #guideBtn { display: none !important; }
     body { padding: 0; }
     .wrap { max-width: none; padding: 0 10mm; }
   }
@@ -530,6 +572,15 @@
     </div>
   </div>
 
+  <section class="brief" id="brief">
+    <div class="brief-head">
+      <div class="pt-name"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Brief</div>
+      <span class="pt-hint" id="briefHint"></span>
+      <button type="button" class="link-btn" id="briefToggle" aria-expanded="true">Hide</button>
+    </div>
+    <div class="brief-body" id="briefBody"></div>
+  </section>
+
   <div id="board"></div>
 </div>
 
@@ -575,8 +626,8 @@
  * 4-column "Impacted Zones" multi-value fallback.
  */
 // Tool version — bump both values on every release (date format YYYY-MM-DD).
-const APP_VERSION = "1.2.0";
-const APP_LAST_UPDATED = "2026-10-25";
+const APP_VERSION = "1.3.0";
+const APP_LAST_UPDATED = "2026-10-26";
 document.getElementById("appVersion").textContent =
   "v" + APP_VERSION + " · Last updated " +
   new Date(APP_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
@@ -1876,6 +1927,7 @@ function render() {
   if (currentView === "year") renderLanes(yearColumns(inYear));
   else renderLanes(quarterColumns(inYear, showNotDetailed));
   if (isMobile()) renderMobile(inYear);
+  else renderBrief();
 }
 
 // ---- Year view: one card per quarter (quarter comes from the PI field) ----
@@ -2110,6 +2162,8 @@ function sortByGoLive(items) {
 function buildItemLine(item, showShortDesc) {
   const row = document.createElement("div");
   row.className = "item-line";
+  row.dataset.key = item.key;
+  const why = attentionReason(item, todayStart());
   const active = PRIO_DEFS.filter((d) => item[d.prop]);
   const tone = item.prioDomain ? " on on-domain" : item.prioSquad ? " on on-squad" : ""; // Domain (violet) overlaps Squad (blue)
   const tip = active.length ? `${active.map((d) => d.label).join(" + ")} — click to edit` : "Flag as priority";
@@ -2118,6 +2172,7 @@ function buildItemLine(item, showShortDesc) {
       <div class="col-title">
         <span>${item.link ? `<a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">${escapeHTML(item.title)}</a>` : escapeHTML(item.title)}</span>
         ${showShortDesc && item.shortDesc ? `<span class="il-desc">${escapeHTML(item.shortDesc)}</span>` : ""}
+        ${why ? `<span class="il-alert">⚠ ${escapeHTML(why)}</span>` : ""}
       </div>
       <div class="col-flag"><button type="button" class="flag-btn${tone}" data-key="${escapeHTML(item.key)}" title="${escapeHTML(tip)}" aria-label="${escapeHTML(tip)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg></button></div>
     </div>
@@ -2355,6 +2410,20 @@ function renderMobile(inYear) {
   if (mFilters.classList.contains("on")) mRenderFilters();
 }
 
+// Key figures of the period, shared by the phone Brief tab and the desktop Brief panel
+function briefFigures(items, period) {
+  const today = todayStart();
+  let nextTitle = "Next go-lives";
+  let next = sortByGoLive(items.filter((it) => it.golive && it.golive >= today));
+  if (!next.length) { nextTitle = "Latest go-lives"; next = sortByGoLive(items.filter((it) => it.golive)).reverse(); }
+  return {
+    today, next, nextTitle,
+    golives: items.filter((it) => it.golive && it.golive >= period.start && it.golive < period.end),
+    flagged: items.filter((it) => it.prioSquad || it.prioDomain),
+    attention: sortByGoLive(items.filter((it) => attentionReason(it, today))),
+  };
+}
+
 // ---- Brief: the cheat sheet of the period ----
 function mBriefHTML() {
   const items = periodItems();
@@ -2368,11 +2437,8 @@ function mBriefHTML() {
     ? `<section class="m-section" style="margin-top:0"><h2>Search results<b>${items.length}</b></h2>${mListHTML("search", sortByGoLive(items), () => "")}</section>`
     : "";
 
-  const today = todayStart();
-  const golives = items.filter((it) => it.golive && it.golive >= period.start && it.golive < period.end);
-  const flagged = items.filter((it) => it.prioSquad || it.prioDomain);
-  const attention = sortByGoLive(items.filter((it) => attentionReason(it, today)));
-  const tile = (goto, value, label, cls = "") =>
+  const { today, golives, flagged, attention, next, nextTitle } = briefFigures(items, period);
+  const tile =(goto, value, label, cls = "") =>
     `<div class="m-tile${cls}" role="button" tabindex="0" data-goto="${goto}"><div class="v">${value}</div><div class="l">${label}</div></div>`;
   const tiles = `<div class="m-tiles">
     ${tile("next", golives.length, "Go-lives planned")}
@@ -2384,10 +2450,7 @@ function mBriefHTML() {
   const status = `<section class="m-section"><h2>Status</h2>${statusBarHTML(items)}
     <div class="m-legend">${FAMILIES.filter((f) => c[f.id]).map((f) => `<span><i class="fam-${f.id}"></i>${f.label} <b>${c[f.id]}</b></span>`).join("")}</div></section>`;
 
-  let nextTitle = "Next go-lives";
-  let next = sortByGoLive(items.filter((it) => it.golive && it.golive >= today));
-  if (!next.length) { nextTitle = "Latest go-lives"; next = sortByGoLive(items.filter((it) => it.golive)).reverse(); }
-  const nextSec = `<section class="m-section" id="m-sec-next"><h2>${nextTitle}<b>${next.length}</b></h2>
+  const nextSec =`<section class="m-section" id="m-sec-next"><h2>${nextTitle}<b>${next.length}</b></h2>
     ${next.length ? mListHTML("next", next, (it) => `Go Live ${fmtDateShort(it.golive)} · ${relDays(it.golive)}`) : `<div class="m-empty small">No Go Live date in this period yet.</div>`}</section>`;
 
   const attSec = `<section class="m-section" id="m-sec-attention"><h2>Needs attention<b>${attention.length}</b></h2>
@@ -2631,6 +2694,118 @@ mSearch.addEventListener("keydown", (e) => { if (e.key === "Enter") mSearch.blur
 document.getElementById("mGuideBtn").addEventListener("click", (e) => { e.stopPropagation(); startTour("app"); });
 
 // ---------------------------------------------------------------------
+// DESKTOP BRIEF — the phone's Brief tab as a panel above the board: same
+// figures for the period and filters displayed (go-lives, priorities, needs
+// attention, status, domains). Click a topic or a domain to find it on the
+// board. Only the folded/unfolded state is kept in the browser (localStorage).
+// ---------------------------------------------------------------------
+const briefEl = document.getElementById("brief");
+const briefBody = document.getElementById("briefBody");
+const BRIEF_STORE = "edr.brief.collapsed";
+const brief = { periodKey: "", more: new Set() };
+
+function setBriefCollapsed(on) {
+  briefEl.classList.toggle("collapsed", on);
+  const t = document.getElementById("briefToggle");
+  t.textContent = on ? "Show" : "Hide";
+  t.setAttribute("aria-expanded", String(!on));
+}
+try { setBriefCollapsed(localStorage.getItem(BRIEF_STORE) === "1"); } catch (e) { /* storage blocked: unfolded */ }
+document.getElementById("briefToggle").addEventListener("click", () => {
+  const on = !briefEl.classList.contains("collapsed");
+  setBriefCollapsed(on);
+  try { localStorage.setItem(BRIEF_STORE, on ? "1" : "0"); } catch (e) { /* storage blocked: state not remembered */ }
+});
+
+function bRowHTML(it, note, alert) {
+  const flag = it.prioDomain ? "domain" : it.prioSquad ? "squad" : "";
+  const title = it.link ? `<a href="${escAttr(it.link)}" target="_blank" rel="noopener">${escapeHTML(it.title)}</a>` : escapeHTML(it.title);
+  return `<div class="b-row" role="button" tabindex="0" data-key="${escAttr(it.key)}" title="Show on the board">
+    <div class="b-row-head"><span>${title}</span>${flag ? flagIconHTML(flag) : ""}</div>
+    <div class="b-row-meta">${statusTagHTML(it.status)}<span>${escapeHTML(laneOf(it).team)}</span>${note ? `<span class="b-note${alert ? " alert" : ""}">${escapeHTML(note)}</span>` : ""}</div>
+  </div>`;
+}
+// First 5 rows, then a "Show all" button (expanded state kept until the period changes)
+function bListHTML(key, items, noteFn, alert) {
+  const shown = brief.more.has(key) ? items : items.slice(0, 5);
+  return shown.map((it) => bRowHTML(it, noteFn(it), alert)).join("") +
+    (shown.length < items.length ? `<button type="button" class="m-more" data-more="${key}">Show all (${items.length})</button>` : "");
+}
+
+function renderBrief() {
+  briefEl.classList.add("visible");
+  const period = periodInfo();
+  const pk = `${currentView}|${currentYear}|${currentQuarter}`;
+  if (pk !== brief.periodKey) { brief.periodKey = pk; brief.more.clear(); }
+  const items = periodItems();
+  const nf = activeFilterCount();
+  document.getElementById("briefHint").textContent =
+    `${period.label} · ${periodRangeText(period)}${nf ? ` · ${nf} filter${nf > 1 ? "s" : ""} active` : ""}`;
+  if (!items.length) {
+    briefBody.innerHTML = `<div class="m-empty small">${searchQuery ? "No topic matches this search" : "Nothing planned"} in ${escapeHTML(period.label)}${nf ? " with the current filters" : ""}.</div>`;
+    return;
+  }
+
+  const { today, golives, flagged, attention, next, nextTitle } = briefFigures(items, period);
+  const c = familyCounts(items);
+  const top = `<div class="brief-top">
+    <div class="m-tile"><div class="v">${golives.length}</div><div class="l">Go-lives planned in ${escapeHTML(period.label)}</div></div>
+    <div class="m-tile${hideUnflagged ? " on" : ""}" role="button" tabindex="0" data-act="flagged" title="${hideUnflagged ? "Show all topics again" : "Show only the flagged topics"}"><div class="v">${flagged.length}</div><div class="l">Priority topics${hideUnflagged ? " · only these shown" : ""}</div></div>
+    <div class="m-tile${attention.length ? " alert" : ""}"><div class="v">${attention.length}</div><div class="l">Need attention</div></div>
+    <div class="brief-status"><h3>Status</h3>${statusBarHTML(items)}
+      <div class="m-legend">${FAMILIES.filter((f) => c[f.id]).map((f) => `<span><i class="fam-${f.id}"></i>${f.label} <b>${c[f.id]}</b></span>`).join("")}</div></div>
+  </div>`;
+
+  const nextCol = `<div class="brief-col"><h3>${nextTitle}<b>${next.length}</b></h3>
+    ${next.length ? bListHTML("next", next, (it) => `Go Live ${fmtDateShort(it.golive)} · ${relDays(it.golive)}`) : `<div class="m-empty small">No Go Live date in this period yet.</div>`}</div>`;
+  const attCol = `<div class="brief-col"><h3>Needs attention<b>${attention.length}</b></h3>
+    <p class="m-hint">Go Live date passed, or UAT start passed, while the status has not moved on.</p>
+    ${attention.length ? bListHTML("attention", attention, (it) => attentionReason(it, today), true) : `<div class="m-empty small">Nothing late: dates and statuses are consistent.</div>`}</div>`;
+  const domRows = sortedDomains(items).map((d) => {
+    const list = items.filter((it) => laneOf(it).domain === d);
+    return `<div class="m-dom-row" role="button" tabindex="0" data-goto-domain="${escAttr(d)}" title="Show on the board"><span>${escapeHTML(d)}</span>${statusBarHTML(list)}<b>${list.length}</b><span class="chev">›</span></div>`;
+  }).join("");
+  const domCol = `<div class="brief-col"><h3>By domain</h3>${domRows}</div>`;
+
+  briefBody.innerHTML = top + `<div class="brief-cols">${nextCol}${attCol}${domCol}</div>`;
+}
+
+// Scrolls the board to an element, below the sticky column headers
+function scrollBoardTo(el, smooth = true) {
+  const head = boardEl.querySelector(".lane-colhead");
+  const y = el.getBoundingClientRect().top + window.scrollY - (head ? head.offsetHeight : 0) - 16;
+  window.scrollTo({ top: Math.max(0, y), behavior: smooth ? "smooth" : "auto" });
+}
+function showOnBoard(key) {
+  const find = () => boardEl.querySelector(`.item-line[data-key="${CSS.escape(key)}"]`);
+  let line = find();
+  // Quarter view: a topic with no date in the quarter only appears in the "Not detailed planned" column
+  if (!line && currentView === "quarter" && !showNotDetailed) { document.getElementById("ndCheck").click(); line = find(); }
+  if (!line) return;
+  scrollBoardTo(line);
+  line.classList.remove("flash");
+  void line.offsetWidth; // restarts the animation
+  line.classList.add("flash");
+}
+
+briefBody.addEventListener("click", (e) => {
+  if (e.target.closest("a")) return; // the title opens JIRA
+  const t = e.target.closest("[data-key],[data-goto-domain],[data-more],[data-act]");
+  if (!t) return;
+  const d = t.dataset;
+  if (d.key) showOnBoard(d.key);
+  else if (d.gotoDomain != null) {
+    const band = [...boardEl.querySelectorAll(".lane-domain")].find((b) => b.textContent === d.gotoDomain);
+    if (band) scrollBoardTo(band);
+  }
+  else if (d.more) { brief.more.add(d.more); renderBrief(); }
+  else if (d.act === "flagged") document.getElementById("flaggedOnly").click();
+});
+briefBody.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches('[role="button"]')) { e.preventDefault(); e.target.click(); }
+});
+
+// ---------------------------------------------------------------------
 // SAMPLE DATA — fictional topics, built as a JIRA-like CSV and run through
 // the regular parser, so the demo behaves exactly like a real import.
 // Dates are relative to the current year so the board is never empty.
@@ -2721,6 +2896,8 @@ const TOURS = {
       body: "<strong>Year</strong> shows one column per quarter. <strong>Quarter</strong> shows one column per month, with an option to show topics that have no planned dates yet (<em>Not detailed planned</em>)." },
     { target: "#yearPills", title: "Pick the period",
       body: "Choose the year to display (and the quarter, in Quarter view). Topics are placed according to their PI field." },
+    { target: "#brief", title: "The brief of the period",
+      body: "Key figures for the period and filters displayed: go-lives planned, priority topics and topics that <strong>need attention</strong> (Go Live or UAT date passed while the status has not moved on). Click a topic or a domain to find it on the board." },
     { target: "#board", title: "Read the roadmap",
       body: "Topics are grouped by platform, domain and team, then by status. Each topic shows a mini timeline: Build start, UAT start and Go Live (star). Click a title to open it in JIRA." },
     { target: "#exportBtn", title: "Export",
