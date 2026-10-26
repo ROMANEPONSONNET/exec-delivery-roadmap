@@ -73,16 +73,8 @@
   }
   .error.visible { display: block; }
 
-  /* Two clearly labelled zones: FILTERS (which topics) and VIEW (how/when they are displayed) */
-  .panel { align-items: center; gap: 14px 22px; flex-wrap: wrap; padding: 12px 18px; border: 1px solid var(--color-border); border-radius: 14px; margin-bottom: 12px; }
-  .panel-title { flex: 0 0 150px; }
-  .panel-title .pt-name, .brief-head .pt-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text); }
-  .panel-title .pt-name svg, .brief-head .pt-name svg { width: 16px; height: 16px; stroke: var(--pill-active-bg); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .panel-title .pt-hint { font-size: 11.5px; color: var(--color-muted); margin-top: 2px; }
-  #toolbar { display: none; background: #fff; }
-  #toolbar.visible { display: flex; }
-  .nav-group { display: inline-flex; align-items: center; gap: 10px; }
-  .nav-label { font-size: 12.5px; color: var(--color-muted); }
+  /* Filters live in a side panel opened from the rail (desktop) or in the phone's Filters sheet */
+  #toolbar { display: none; }
   #filterRow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 14px; }
   .search-input {
     font-size: 14px; height: 42px; padding: 0 14px 0 38px; width: 260px; border: 1px solid var(--color-border); border-radius: 10px;
@@ -124,15 +116,11 @@
   .chk-toggle:has(input:checked) .chk-flag path { fill: currentColor; }
 
   .export-wrap { position: relative; }
-  #exportBtn {
-    font-size: 14px; height: 42px; padding: 0 20px; border-radius: 10px; border: 1px solid var(--color-border);
-    background: var(--pill-bg); color: var(--color-text); cursor: pointer; font-family: inherit;
-  }
-  #exportBtn:hover { background: var(--pill-active-bg); color: #fff; }
+  /* Opens to the right of the rail's Export button */
   .export-menu {
-    display: none; position: absolute; right: 0; top: calc(100% + 6px); background: #fff;
-    border: 1px solid var(--color-border); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.1);
-    min-width: 220px; padding: 6px; z-index: 20;
+    display: none; position: absolute; left: calc(100% + 8px); bottom: 0; background: #fff;
+    border: 1px solid var(--color-border); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.14);
+    min-width: 300px; padding: 6px; z-index: 20; color: var(--color-text);
   }
   .export-menu.open { display: block; }
   .export-menu button {
@@ -142,23 +130,10 @@
   .export-menu button:hover { background: var(--card-bg); }
   .export-menu .hint { font-size: 11px; color: var(--color-muted); padding: 2px 10px 6px; }
 
-  /* View navigation bar, directly above the board: level 1 (Year | Quarter) then level 2 (years, quarters) */
-  .pills-row { display: none; background: var(--card-bg); margin-bottom: 18px; }
-  .pills-row.visible { display: flex; }
-  .pills-row .export-wrap { margin-left: auto; }
-  .pills-row .pill-toggle, .pills-row .pill-group { background: #fff; }
-  .nav-sep { width: 1px; height: 26px; background: #ddd5ca; }
-  .pill-group { display: inline-flex; background: var(--pill-bg); border-radius: 999px; padding: 4px; gap: 2px; }
-  .pill-group button {
-    border: none; background: transparent; font-size: 13px; padding: 7px 16px; border-radius: 999px;
-    cursor: pointer; color: var(--color-muted); font-family: inherit;
-  }
-  .pill-group button.active { background: var(--pill-active-bg); color: #fff; font-weight: 700; }
-
   #board { display: none; }
   #board.visible { display: block; }
 
-  /* ---- Column headers (Year = quarters, Quarter = months): Title / Build → UAT → Go Live.
+  /* ---- Column headers (Year = quarters, Quarter = months): Title / Start build → UAT → Go Live.
      Items are grouped by status, so the status is shown once per group, not once per item. */
   .card-head { padding: 12px 16px 10px; min-height: 56px; position: relative; }
   .card-head .label { font-size: 18px; font-weight: 700; display: block; }
@@ -180,7 +155,7 @@
   .status-tag.st-green  { color: #17562e; background: #d9f0df; }
   .status-tag.st-other  { color: var(--color-muted); background: #fff; border: 1px solid var(--color-border); }
 
-  /* Epic line: title (full width, may wrap) + flag, then a mini timeline Build → UAT → Go Live with the dates below */
+  /* Epic line: title (full width, may wrap) + flag, then a mini timeline Start build → UAT → Go Live with the dates below */
   .item-line { display: flex; flex-direction: column; gap: 4px; padding: 7px 16px; font-size: 12.5px; }
   .item-line + .item-line { border-top: 1px dashed var(--color-border); }
   .il-head { display: flex; align-items: flex-start; gap: 6px; }
@@ -226,7 +201,7 @@
 
   /* ---- Swimlanes: Platform (.com, then App) > Domain > Team rows, columns = quarters / months ---- */
   .lanes-grid { display: grid; align-items: stretch; }
-  .lane-corner, .lane-colhead { position: sticky; top: 0; z-index: 6; }
+  .lane-corner, .lane-colhead { position: sticky; top: var(--dhead-h, 0px); z-index: 6; } /* below the desktop header */
   .lane-corner { background: var(--card-bg); border-radius: 12px 0 0 0; padding: 12px 12px 0; font-size: 11px; color: var(--color-muted); display: flex; align-items: flex-end; }
   .lane-colhead:last-of-type { border-radius: 0 12px 0 0; overflow: clip; }
   .lane-domain { grid-column: 1 / -1; background: var(--grad-dark); color: #fff; font-weight: 700; font-size: 13px; letter-spacing: .02em; padding: 8px 14px; margin-top: 14px; border-radius: 10px 10px 0 0; }
@@ -243,18 +218,9 @@
   .lane-cell .status-group + .status-group { margin-top: 2px; }
   .lanes-empty { padding: 24px; font-size: 13px; color: var(--color-muted); font-style: italic; }
   .il-alert { font-size: 11px; font-weight: 600; color: #a13327; }
-  .item-line.flash { animation: il-flash 1.6s ease-out; }
-  @keyframes il-flash { 0%, 40% { background: #f6ece2; box-shadow: inset 3px 0 0 var(--pill-active-bg); } 100% { background: transparent; } }
 
-  /* ---- Desktop Brief: the key figures of the period, above the board (same figures as the phone Brief tab) ---- */
-  .brief { display: none; border: 1px solid var(--color-border); border-radius: 14px; background: #fff; padding: 12px 18px 16px; margin-bottom: 18px; }
-  .brief.visible { display: block; }
-  .brief-head { display: flex; align-items: center; gap: 14px; }
-  .brief-head .pt-hint { flex: 1; font-size: 12px; color: var(--color-muted); }
-  .brief-head .link-btn { font-size: 13px; }
-  .brief.collapsed { padding-bottom: 12px; }
-  .brief.collapsed .brief-body { display: none; }
-  .brief-body { margin-top: 12px; }
+  /* ---- Desktop Brief screen: the key figures of the period (same figures as the phone Brief tab) ---- */
+  .brief { display: none; }
   .brief-top { display: grid; grid-template-columns: repeat(3, 150px) 1fr; gap: 10px; align-items: stretch; }
   .brief .m-tile { cursor: default; }
   .brief .m-tile[role="button"] { cursor: pointer; }
@@ -283,6 +249,138 @@
     .brief-top { grid-template-columns: repeat(3, 1fr); }
     .brief-status { grid-column: 1 / -1; }
     .brief-cols { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ---- Desktop Priorities screen: Prio Domain, then Prio Squad ---- */
+  .prio-screen { display: none; }
+  .prio-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  .prio-col h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); margin: 0 0 10px; }
+  .prio-col h3 span { display: inline-flex; align-items: center; gap: 6px; }
+  .prio-col h3 b { color: var(--color-text); font-size: 13px; }
+  .prio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .prio-grid .m-card + .m-card { margin-top: 0; }
+  .prio-note { font-size: 12px; color: var(--color-muted); margin: 20px 0 0; padding-top: 12px; border-top: 1px solid var(--color-border); }
+  @media (max-width: 1100px) { .prio-cols { grid-template-columns: 1fr; } }
+
+  /* ---- Desktop shell: icon rail on the left, one shared header, screens and side panels ---- */
+  .d-rail, .d-head, .d-drawer-head, .d-drawer-foot, #dBackdrop, .d-detail { display: none; }
+  @media (min-width: 761px) {
+    :root { --rail-w: 76px; }
+    body { padding-left: var(--rail-w); }
+    #guideBtn { display: none; } /* the rail has its own Guide button */
+
+    .d-rail {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; position: fixed; left: 0; top: 0; bottom: 0;
+      width: var(--rail-w); padding: 12px 0; background: var(--grad-dark); color: #e9dccf; z-index: 55;
+    }
+    .d-logo { width: 38px; height: 38px; border-radius: 10px; background: var(--pill-active-bg); color: #1a1208; display: grid; place-items: center; font-weight: 800; font-size: 13px; margin-bottom: 12px; cursor: default; }
+    .d-rail-tabs { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .d-rail-sep { width: 36px; border-top: 1px solid rgba(255,255,255,.18); margin: 4px 0; }
+    .d-rail-fill { flex: 1; }
+    .d-rail-btn {
+      position: relative; width: calc(var(--rail-w) - 14px); padding: 8px 0 6px; border: none; border-radius: 10px; background: none;
+      color: inherit; font: inherit; font-size: 10.5px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer;
+    }
+    .d-rail-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .d-rail-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .d-rail-btn:focus-visible { outline: 2px solid var(--pill-active-bg); outline-offset: 1px; }
+    .d-rail-btn.on { background: rgba(255,255,255,.15); color: #fff; font-weight: 700; }
+    .d-rail-btn.on::before { content: ""; position: absolute; left: -7px; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--pill-active-bg); }
+    .d-rail-btn.open { box-shadow: inset 0 0 0 1.5px var(--pill-active-bg); color: #fff; }
+    body:not(.has-data) .d-rail-btn[data-needs-data] { opacity: .32; cursor: not-allowed; }
+    body:not(.has-data) .d-rail-btn[data-needs-data]:hover { background: none; color: inherit; }
+    body:not(.has-data) .d-rail-btn[data-drail="data"] { background: rgba(255,255,255,.15); color: #fff; font-weight: 700; }
+    .d-badge {
+      position: absolute; top: 3px; left: calc(50% + 4px); min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+      background: var(--pill-active-bg); color: #1a1208; font-size: 10px; font-weight: 800; display: none; align-items: center; justify-content: center;
+    }
+    .d-badge.on { display: flex; }
+
+    /* Before any import: the welcome screen (title, how-to, dropzone) centred */
+    body:not(.has-data) .wrap { max-width: 760px; }
+
+    /* Data loaded: header + current screen; the import blocks move to the Data panel */
+    body.has-data .wrap { max-width: none; padding: 0 20px 60px; }
+    body.has-data header.top { display: none; }
+    body.has-data .d-head {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; position: sticky; top: 0; z-index: 30;
+      margin: 0 -20px 16px; padding: 10px 20px; background: #fff; border-bottom: 1px solid var(--color-border);
+    }
+    .d-title { display: flex; flex-direction: column; min-width: 120px; }
+    #dTitle { font-size: 18px; font-weight: 700; line-height: 1.2; }
+    #dRange { font-size: 11.5px; color: var(--color-muted); }
+    .d-period { display: flex; align-items: center; gap: 12px; }
+    .d-head .pill-toggle { padding: 3px; }
+    .d-head .pill-toggle button { padding: 6px 16px; font-size: 13px; }
+    .d-head .m-stepper button { width: 30px; height: 30px; font-size: 16px; }
+    .d-head .m-stepper span { min-width: 66px; font-size: 14px; }
+    body:not([data-dtab="roadmap"]) #ndToggle { display: none !important; }
+    .d-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .d-chip {
+      display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 4px 0 11px; border-radius: 999px;
+      background: #f6ece2; border: 1px solid var(--pill-active-bg); font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    }
+    .d-chip button { border: none; background: none; width: 22px; height: 22px; border-radius: 50%; font: inherit; font-size: 11px; color: var(--color-muted); cursor: pointer; }
+    .d-chip button:hover { background: #fff; color: var(--color-text); }
+    .d-chip-reset { font-size: 12.5px; margin-left: 4px; }
+    .d-head-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .d-kpis button { border: none; background: none; padding: 4px 6px; border-radius: 8px; font: inherit; font-size: 12.5px; color: var(--color-text); cursor: pointer; white-space: nowrap; }
+    .d-kpis button:hover { background: var(--pill-bg); }
+    .d-kpis .alert { color: #a13327; }
+    .d-head .search-input { height: 36px; width: 240px; }
+
+    /* Only the current screen is shown */
+    body.has-data .d-screen { display: none !important; }
+    body.has-data[data-dtab="brief"] #brief,
+    body.has-data[data-dtab="roadmap"] #board,
+    body.has-data[data-dtab="prio"] #prioScreen { display: block !important; }
+
+    /* Topics open their details: whole line clickable, selected one highlighted */
+    #board .item-line { cursor: pointer; border-radius: 6px; }
+    #board .item-line:hover { background: #fcf8f3; }
+    #board .item-line.d-sel, .b-row.d-sel { background: #f6ece2; box-shadow: inset 3px 0 0 var(--pill-active-bg); }
+    .m-card.d-sel { border-color: var(--pill-active-bg); background: #fffaf4; }
+
+    /* Side panels (Filters, Data) slide over the screen, next to the rail */
+    #dBackdrop.on { display: block; position: fixed; inset: 0 0 0 var(--rail-w); z-index: 51; background: rgba(40,28,20,.28); }
+    #toolbar.open, body.has-data #dataPanel.open {
+      display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: var(--rail-w); z-index: 52;
+      width: 360px; max-width: calc(100vw - var(--rail-w)); background: #fff; border-right: 1px solid var(--color-border);
+      box-shadow: 8px 0 28px rgba(62,42,30,.18);
+    }
+    #toolbar .d-drawer-head, #toolbar .d-drawer-foot, body.has-data #dataPanel .d-drawer-head { display: flex; }
+    .d-drawer-head { justify-content: space-between; align-items: center; padding: 14px 16px 10px; font-size: 16px; font-weight: 700; flex: none; }
+    .d-drawer-foot { justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--color-border); flex: none; }
+    .d-primary { height: 38px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--grad-dark); background: var(--grad-dark); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    #toolbar #filterRow { flex: 1; min-height: 0; overflow-y: auto; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; padding: 4px 16px 16px; }
+    #toolbar .multiselect { width: 100%; }
+    #toolbar .ms-button { width: 100%; justify-content: space-between; }
+    #toolbar .ms-panel { position: static; margin-top: 6px; box-shadow: none; min-width: 0; max-height: 280px; }
+    #toolbar .chk-toggle { width: 100%; }
+
+    body.has-data #dataPanel { display: none; }
+    body.has-data #dataPanel .d-data-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+    body.has-data #dataPanel .d-data-body > * { margin: 0; }
+    body.has-data #fileInfo { order: -2; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--card-bg); font-size: 12.5px; color: var(--color-text); }
+    body.has-data #dropzone { order: -1; padding: 18px; font-size: 13px; border-width: 2px; }
+    body.has-data .disclaimer { order: 2; }
+
+    /* Topic details: right-hand panel, the screen stays visible on the left */
+    .d-detail.open {
+      display: flex; flex-direction: column; position: fixed; top: 0; right: 0; bottom: 0; z-index: 50; width: 400px; max-width: calc(100vw - var(--rail-w));
+      background: #fff; border-left: 1px solid var(--color-border); box-shadow: -8px 0 28px rgba(62,42,30,.16); overflow-y: auto; padding: 16px 18px 0;
+    }
+    .d-detail .m-sheet-head h2 { font-size: 19px; }
+    .d-detail-nav { position: sticky; bottom: 0; margin: auto -18px 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 18px; background: #fff; border-top: 1px solid var(--color-border); font-size: 12.5px; color: var(--color-muted); }
+    .d-nav-btn { border: 1px solid var(--color-border); background: #fff; border-radius: 8px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; color: var(--color-text); cursor: pointer; }
+    .d-nav-btn:disabled { opacity: .35; cursor: default; }
+  }
+  /* Narrower screens: compact rail, icons only */
+  @media (min-width: 761px) and (max-width: 1100px) {
+    :root { --rail-w: 58px; }
+    .d-rail-btn .lbl { display: none; }
+    .d-rail-btn { padding: 10px 0; }
+    .d-detail.open { width: calc(100vw - var(--rail-w)); }
   }
 
 
@@ -486,13 +584,44 @@
 
   /* ---- Vertical printable (release-note style) ---- */
   @media print {
-    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .pills-row, .brief, .flag-btn, .prio-menu, .sample-row, #guideBtn { display: none !important; }
+    #dropzone, #toolbar, #fileInfo, .error, .pill-toggle, .flag-btn, .prio-menu, .sample-row, #guideBtn,
+    .d-rail, .d-head, #dataPanel, .d-detail, #dBackdrop { display: none !important; }
     body { padding: 0; }
     .wrap { max-width: none; padding: 0 10mm; }
+    /* Only the screen on display is printed */
+    body.has-data .d-screen { display: none !important; }
+    body.has-data[data-dtab="brief"] #brief,
+    body.has-data[data-dtab="roadmap"] #board,
+    body.has-data[data-dtab="prio"] #prioScreen { display: block !important; }
+    .lane-corner, .lane-colhead { position: static; }
   }
 </style>
 </head>
 <body>
+<!-- Desktop rail (≥ 761px): the phone's tabs (Brief, Roadmap, Priorities, Filters) + Data, Export, Guide -->
+<nav class="d-rail" id="dRail" aria-label="Main">
+  <div class="d-logo" id="dLogo">ER</div>
+  <div class="d-rail-tabs">
+    <button type="button" class="d-rail-btn" data-dtab="brief" data-needs-data title="Brief (1)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span class="lbl">Brief</span></button>
+    <button type="button" class="d-rail-btn" data-dtab="roadmap" data-needs-data title="Roadmap (2)"><svg viewBox="0 0 24 24"><path d="M3 6h9M7 12h13M3 18h11"/></svg><span class="lbl">Roadmap</span></button>
+    <button type="button" class="d-rail-btn" data-dtab="prio" data-needs-data title="Priorities (3)"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5"/></svg><span class="lbl">Priorities</span></button>
+  </div>
+  <span class="d-rail-sep"></span>
+  <button type="button" class="d-rail-btn" data-drail="filters" data-needs-data title="Filters (F)" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg><span class="lbl">Filters</span><span class="d-badge" id="dFilterBadge"></span></button>
+  <span class="d-rail-fill"></span>
+  <button type="button" class="d-rail-btn" data-drail="data" title="Loaded file, import a JIRA export" aria-expanded="false"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span class="lbl">Data</span></button>
+  <div class="export-wrap">
+    <button type="button" class="d-rail-btn" id="exportBtn" data-needs-data title="Export"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span class="lbl">Export</span></button>
+    <div class="export-menu" id="exportMenu">
+      <div class="hint">Choose a format</div>
+      <button data-fmt="csv">Export CSV</button>
+      <button data-fmt="pptx">Export PowerPoint — Timeline (horizontal)</button>
+      <button data-fmt="docx">Export Word — Release note (vertical)</button>
+    </div>
+  </div>
+  <button type="button" class="d-rail-btn" id="dGuideBtn" title="Replay the guided tour (?)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6M12 17h.01"/></svg><span class="lbl">Guide</span></button>
+</nav>
+
 <div class="wrap">
   <header class="top">
     <div class="title-group">
@@ -502,33 +631,58 @@
     <button type="button" id="guideBtn" title="Replay the guided tour">? Guide</button>
   </header>
 
-  <p class="disclaimer">Import your JIRA export (CSV). Processing is 100% local, in your browser — no data is ever sent anywhere.</p>
+  <!-- Import: the welcome screen before any data, then the rail's Data panel -->
+  <section id="dataPanel" aria-label="Data">
+    <div class="d-drawer-head"><span>Data</span><button type="button" class="m-x" data-dclose aria-label="Close the Data panel">✕</button></div>
+    <div class="d-data-body">
+      <p class="disclaimer">Import your JIRA export (CSV). Processing is 100% local, in your browser — no data is ever sent anywhere.</p>
 
-  <div class="howto" id="howto">
-    <strong>How to get your data</strong>
-    <ol>
-      <li>Open the JIRA filter: <a id="jiraFilterLink" href="#" target="_blank" rel="noopener">View JIRA filter</a></li>
-      <li>In JIRA, click the <strong>•••</strong> button (top right), then <strong>Export → Excel CSV - filter fields</strong>.</li>
-      <li>Drag the downloaded file into the box below.</li>
-    </ol>
+      <div class="howto" id="howto">
+        <strong>How to get your data</strong>
+        <ol>
+          <li>Open the JIRA filter: <a id="jiraFilterLink" href="#" target="_blank" rel="noopener">View JIRA filter</a></li>
+          <li>In JIRA, click the <strong>•••</strong> button (top right), then <strong>Export → Excel CSV - filter fields</strong>.</li>
+          <li>Drag the downloaded file into the box below.</li>
+        </ol>
+      </div>
+
+      <div id="dropzone">
+        <span class="d-only">Drag and drop one or more CSV files here, or click to select them.</span>
+        <span class="m-only-inline">Tap here to choose a JIRA CSV file.</span>
+        <input type="file" id="fileInput" accept=".csv" multiple>
+      </div>
+      <div class="sample-row" id="sampleRow">No JIRA export at hand? <button type="button" class="link-btn" id="sampleBtn">Try with sample data</button> (fictional topics)</div>
+      <div id="fileInfo"></div>
+    </div>
+  </section>
+
+  <!-- Desktop header, shared by every screen: period, active filters, search -->
+  <div class="d-head" id="dHead">
+    <div class="d-title"><span id="dTitle"></span><span id="dRange"></span></div>
+    <div class="d-period" id="dPeriod">
+      <div class="pill-toggle" id="viewToggle">
+        <button data-view="year" class="active">Year</button>
+        <button data-view="quarter">Quarter</button>
+      </div>
+      <div class="m-stepper">
+        <button type="button" id="dPrev" aria-label="Previous period">‹</button>
+        <span id="dPeriodLabel"></span>
+        <button type="button" id="dNext" aria-label="Next period">›</button>
+      </div>
+      <label class="nd-toggle" id="ndToggle"><input type="checkbox" id="ndCheck"> Not detailed planned</label>
+    </div>
+    <div class="d-chips" id="dChips"></div>
+    <div class="d-head-right">
+      <span class="d-kpis" id="dKpis"></span>
+      <input type="search" id="searchInput" class="search-input" placeholder="Search a topic or JIRA key…" aria-label="Search a topic by title or JIRA key" autocomplete="off">
+    </div>
   </div>
 
-  <div id="dropzone">
-    <span class="d-only">Drag and drop one or more CSV files here, or click to select them.</span>
-    <span class="m-only-inline">Tap here to choose a JIRA CSV file.</span>
-    <input type="file" id="fileInput" accept=".csv" multiple>
-  </div>
-  <div class="sample-row" id="sampleRow">No JIRA export at hand? <button type="button" class="link-btn" id="sampleBtn">Try with sample data</button> (fictional topics)</div>
-  <div id="fileInfo"></div>
   <div class="error" id="errorBox"></div>
 
-  <div id="toolbar" class="panel">
-    <div class="panel-title">
-      <div class="pt-name"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Filters</div>
-      <div class="pt-hint">Choose which topics are shown</div>
-    </div>
+  <div id="toolbar" class="d-drawer" aria-label="Filters">
+    <div class="d-drawer-head"><span>Filters</span><button type="button" class="m-x" data-dclose aria-label="Close filters">✕</button></div>
     <div id="filterRow">
-      <input type="search" id="searchInput" class="search-input" placeholder="Search a topic…" aria-label="Search a topic by title" autocomplete="off">
       <div class="multiselect" id="fDomain"></div>
       <div class="multiselect" id="fTeam"></div>
       <div class="multiselect" id="fZone"></div>
@@ -537,52 +691,23 @@
       <div class="multiselect" id="fFlag"></div>
       <label class="chk-toggle"><input type="checkbox" id="flaggedOnly"><svg class="chk-flag" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 14.5V1.8M3.5 2.5h9l-2.2 3 2.2 3h-9"/></svg>Hide unflagged topics</label>
     </div>
-  </div>
-
-  <div class="pills-row panel" id="pillsRow">
-    <div class="panel-title">
-      <div class="pt-name"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>View</div>
-      <div class="pt-hint">Choose the period displayed</div>
-    </div>
-    <div class="nav-group">
-      <span class="nav-label">Display by</span>
-      <div class="pill-toggle" id="viewToggle">
-        <button data-view="year" class="active">Year</button>
-        <button data-view="quarter">Quarter</button>
-      </div>
-    </div>
-    <span class="nav-sep"></span>
-    <label class="nd-toggle" id="ndToggle"><input type="checkbox" id="ndCheck"> Not detailed planned</label>
-    <div class="nav-group">
-      <span class="nav-label">Year</span>
-      <div class="pill-group" id="yearPills"></div>
-    </div>
-    <div class="nav-group" id="quarterGroup" style="display:none;">
-      <span class="nav-label">Quarter</span>
-      <div class="pill-group" id="quarterPills"></div>
-    </div>
-    <div class="export-wrap">
-      <button id="exportBtn">↓ Export ▾</button>
-      <div class="export-menu" id="exportMenu">
-        <div class="hint">Choose a format</div>
-        <button data-fmt="csv">Export CSV</button>
-        <button data-fmt="pptx">Export PowerPoint — Timeline (horizontal)</button>
-        <button data-fmt="docx">Export Word — Release note (vertical)</button>
-      </div>
+    <div class="d-drawer-foot">
+      <button type="button" class="link-btn" id="dResetFilters">Reset</button>
+      <button type="button" class="d-primary" id="dShowTopics" data-dclose>Show topics</button>
     </div>
   </div>
 
-  <section class="brief" id="brief">
-    <div class="brief-head">
-      <div class="pt-name"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Brief</div>
-      <span class="pt-hint" id="briefHint"></span>
-      <button type="button" class="link-btn" id="briefToggle" aria-expanded="true">Hide</button>
-    </div>
+  <!-- Screens (desktop): one at a time, picked from the rail -->
+  <section class="brief d-screen" id="brief" aria-label="Brief">
     <div class="brief-body" id="briefBody"></div>
   </section>
 
-  <div id="board"></div>
+  <div id="board" class="d-screen"></div>
+
+  <section class="prio-screen d-screen" id="prioScreen" aria-label="Priorities"></section>
 </div>
+<div id="dBackdrop"></div>
+<aside class="d-detail" id="dDetail" role="dialog" aria-label="Topic details"></aside>
 
 <!-- Mobile app (phones only, once data is loaded) -->
 <div id="mobileApp">
@@ -626,11 +751,12 @@
  * 4-column "Impacted Zones" multi-value fallback.
  */
 // Tool version — bump both values on every release (date format YYYY-MM-DD).
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 const APP_LAST_UPDATED = "2026-10-26";
 document.getElementById("appVersion").textContent =
   "v" + APP_VERSION + " · Last updated " +
   new Date(APP_LAST_UPDATED + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+document.getElementById("dLogo").title = "Executive delivery roadmap · " + document.getElementById("appVersion").textContent;
 
 // Columns are read BY POSITION (A, B, C…), never by header text, because JIRA
 // exports localise the header names depending on each user's language.
@@ -695,6 +821,7 @@ dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.clas
 dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
 dropzone.addEventListener("drop", (e) => {
   e.preventDefault();
+  e.stopPropagation(); // the page-wide drop (desktop) must not import the file a second time
   dropzone.classList.remove("dragover");
   if (e.dataTransfer.files.length) handleFiles([...e.dataTransfer.files]);
 });
@@ -740,9 +867,9 @@ function loadItems(combined, sourceLabel, isSample) {
   fileInfo.textContent = `${sourceLabel} — ${allItems.length} item(s) loaded${noPI ? ` — ${noPI} row(s) ignored (PI missing or invalid)` : ""} — Prio Squad: ${nSquad}, Prio Domain: ${nDomain}`;
   fileInfo.classList.toggle("sample", isSample);
   initFiltersAndPills(allItems);
-  document.getElementById("toolbar").classList.add("visible");
-  document.getElementById("pillsRow").classList.add("visible");
   document.body.classList.add("has-data");
+  closePanels();
+  closeDetail();
   resetMobileState();
   if (isMobile()) mobileDefaultPeriod();
   render();
@@ -1000,9 +1127,7 @@ viewToggle.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-view]");
   if (!btn) return;
   currentView = btn.dataset.view;
-  [...viewToggle.children].forEach((b) => b.classList.toggle("active", b === btn));
-  document.getElementById("quarterGroup").style.display = currentView === "quarter" ? "inline-flex" : "none";
-  document.getElementById("ndToggle").style.display = currentView === "quarter" ? "inline-flex" : "none";
+  syncViewControls();
   render();
 });
 
@@ -1084,6 +1209,11 @@ const exportBtn = document.getElementById("exportBtn");
 const exportMenu = document.getElementById("exportMenu");
 exportBtn.addEventListener("click", (e) => {
   e.stopPropagation();
+  if (!allItems.length) return;
+  // Reminds what will be exported: the period on display and the filters in use
+  const nf = activeFilterCount();
+  exportMenu.querySelector(".hint").textContent =
+    `${periodInfo().label}${nf ? ` · ${nf} filter${nf > 1 ? "s" : ""} active` : ""} · choose a format`;
   exportMenu.classList.toggle("open");
 });
 document.addEventListener("click", () => exportMenu.classList.remove("open"));
@@ -1792,45 +1922,14 @@ function initFiltersAndPills(items) {
   if (years.length === 0) years.push(new Date().getFullYear());
   availableYears = years;
   currentYear = years.includes(new Date().getFullYear()) ? new Date().getFullYear() : years[0];
-
-  const yearPills = document.getElementById("yearPills");
-  yearPills.innerHTML = "";
-  years.forEach((y) => {
-    const btn = document.createElement("button");
-    btn.textContent = y;
-    btn.className = y === currentYear ? "active" : "";
-    btn.addEventListener("click", () => {
-      currentYear = y;
-      [...yearPills.children].forEach((b) => b.classList.toggle("active", b === btn));
-      render();
-    });
-    yearPills.appendChild(btn);
-  });
-
-  const quarterPills = document.getElementById("quarterPills");
-  quarterPills.innerHTML = "";
-  ["Q1", "Q2", "Q3", "Q4"].forEach((label, i) => {
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    btn.className = i === currentQuarter ? "active" : "";
-    btn.addEventListener("click", () => {
-      currentQuarter = i;
-      [...quarterPills.children].forEach((b) => b.classList.toggle("active", b === btn));
-      render();
-    });
-    quarterPills.appendChild(btn);
-  });
+  syncViewControls();
 }
 
-// Puts the desktop view controls back in line with the state after a change made elsewhere (mobile bar)
+// Puts the desktop view controls in line with the state (the period itself is moved with ‹ › , see mStep)
 let availableYears = [];
 function syncViewControls() {
-  const isQuarter = currentView === "quarter";
   [...viewToggle.children].forEach((b) => b.classList.toggle("active", b.dataset.view === currentView));
-  document.getElementById("quarterGroup").style.display = isQuarter ? "inline-flex" : "none";
-  document.getElementById("ndToggle").style.display = isQuarter ? "inline-flex" : "none";
-  [...document.getElementById("yearPills").children].forEach((b) => b.classList.toggle("active", Number(b.textContent) === currentYear));
-  [...document.getElementById("quarterPills").children].forEach((b, i) => b.classList.toggle("active", i === currentQuarter));
+  document.getElementById("ndToggle").style.display = currentView === "quarter" ? "inline-flex" : "none";
 }
 
 function activeFilterCount() {
@@ -1927,7 +2026,7 @@ function render() {
   if (currentView === "year") renderLanes(yearColumns(inYear));
   else renderLanes(quarterColumns(inYear, showNotDetailed));
   if (isMobile()) renderMobile(inYear);
-  else renderBrief();
+  else renderDesktop();
 }
 
 // ---- Year view: one card per quarter (quarter comes from the PI field) ----
@@ -2078,7 +2177,7 @@ function renderLanes(columns) {
     head.innerHTML = `<span class="label">${escapeHTML(col.label)}</span>${col.sub ? `<span class="sub">${escapeHTML(col.sub)}</span>` : ""}`;
     const labels = document.createElement("div");
     labels.className = "col-labels";
-    labels.innerHTML = `<div class="col-title">Title</div><div class="col-dates">Build → UAT → Go Live</div>`;
+    labels.innerHTML = `<div class="col-title">Title</div><div class="col-dates">Start build → UAT → Go Live</div>`;
     const wrap = document.createElement("div");
     wrap.className = "lane-colhead";
     wrap.appendChild(head);
@@ -2185,13 +2284,13 @@ function buildItemLine(item, showShortDesc) {
   return row;
 }
 
-// Mini timeline Build → UAT → Go Live (not to scale): a phase is filled when both of its ends are known.
+// Mini timeline Start build → UAT → Go Live (not to scale): a phase is filled when both of its ends are known.
 // The dates shown are always the real JIRA dates, even when they fall outside the column.
 const STAR_SVG = `<svg class="fr-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z"/></svg>`;
 function friseHTML(item) {
   const { start, uat, golive } = item;
   const date = (d) => d ? escapeHTML(fmtDateBoard(d)) : `<span class="none">—</span>`;
-  const label = `Build ${start ? fmtDateLong(start) : "—"} → UAT ${uat ? fmtDateLong(uat) : "—"} → Go Live ${golive ? fmtDateLong(golive) : "—"}`;
+  const label = `Start build ${start ? fmtDateLong(start) : "—"} → UAT ${uat ? fmtDateLong(uat) : "—"} → Go Live ${golive ? fmtDateLong(golive) : "—"}`;
   return `
     <div class="frise" title="${escapeHTML(label)}" aria-label="${escapeHTML(label)}">
       <span class="fr-pt${start ? " build" : ""}"></span>
@@ -2525,23 +2624,25 @@ function mPrioHTML() {
   return head + sec("Prio Domain", "domain", dom) + sec("Prio Squad", "squad", squad);
 }
 
-// ---- Detail sheet ----
+// ---- Topic details: the phone's detail sheet and the desktop detail panel ----
 function mRenderDetail() {
   const it = allItems.find((x) => x.key === m.detailKey);
   if (!it) return mCloseSheets();
+  mDetail.innerHTML = `<div class="m-grip"></div>` + topicDetailHTML(it);
+}
+function topicDetailHTML(it) {
   const why = attentionReason(it, todayStart());
   const row = (cls, label, d) =>
     `<li><span class="m-tl-dot ${d ? cls : ""}"></span><span>${label}</span><b>${d ? escapeHTML(fmtDateLong(d)) : "—"}</b>${d ? `<small>${relDays(d)}</small>` : ""}</li>`;
   const { domain, team } = laneOf(it);
   const facts = [["Platform", platformOf(it)], ["Domain", domain], ["Team", team], ["Zones", it.zone || "—"], ["PI", `Q${it.quarter + 1} ${it.year}`]];
-  mDetail.innerHTML = `
-    <div class="m-grip"></div>
+  return `
     <div class="m-sheet-head">
       <div><div class="m-key">${escapeHTML(it.key)}</div><h2>${escapeHTML(it.title)}</h2>${statusTagHTML(it.status)}</div>
       <button type="button" class="m-x" data-close aria-label="Close">✕</button>
     </div>
     ${why ? `<div class="m-card-note alert m-why">⚠ ${escapeHTML(why)}</div>` : ""}
-    <ul class="m-tl">${row("build", "Build start", it.start)}${row("uat", "UAT start", it.uat)}${row("star", "Go Live", it.golive)}</ul>
+    <ul class="m-tl">${row("build", "Start build", it.start)}${row("uat", "UAT start", it.uat)}${row("star", "Go Live", it.golive)}</ul>
     <dl class="m-dl">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${escapeHTML(v)}</dd>`).join("")}</dl>
     <div class="m-flags">${PRIO_DEFS.map((d) => `<label><input type="checkbox" data-prop="${d.prop}"${it[d.prop] ? " checked" : ""}><span class="pm-dot" style="background:${d.color}"></span>${d.label}</label>`).join("")}</div>
     <p class="m-note">Flags last for this session only: not saved, not sent to JIRA.</p>
@@ -2694,33 +2795,19 @@ mSearch.addEventListener("keydown", (e) => { if (e.key === "Enter") mSearch.blur
 document.getElementById("mGuideBtn").addEventListener("click", (e) => { e.stopPropagation(); startTour("app"); });
 
 // ---------------------------------------------------------------------
-// DESKTOP BRIEF — the phone's Brief tab as a panel above the board: same
-// figures for the period and filters displayed (go-lives, priorities, needs
-// attention, status, domains). Click a topic or a domain to find it on the
-// board. Only the folded/unfolded state is kept in the browser (localStorage).
+// DESKTOP BRIEF — the phone's Brief tab as a desktop screen: same figures for
+// the period and filters displayed (go-lives, priorities, needs attention,
+// status, domains). Click a topic to see its details, a domain to open it on
+// the Roadmap screen.
 // ---------------------------------------------------------------------
 const briefEl = document.getElementById("brief");
 const briefBody = document.getElementById("briefBody");
-const BRIEF_STORE = "edr.brief.collapsed";
 const brief = { periodKey: "", more: new Set() };
-
-function setBriefCollapsed(on) {
-  briefEl.classList.toggle("collapsed", on);
-  const t = document.getElementById("briefToggle");
-  t.textContent = on ? "Show" : "Hide";
-  t.setAttribute("aria-expanded", String(!on));
-}
-try { setBriefCollapsed(localStorage.getItem(BRIEF_STORE) === "1"); } catch (e) { /* storage blocked: unfolded */ }
-document.getElementById("briefToggle").addEventListener("click", () => {
-  const on = !briefEl.classList.contains("collapsed");
-  setBriefCollapsed(on);
-  try { localStorage.setItem(BRIEF_STORE, on ? "1" : "0"); } catch (e) { /* storage blocked: state not remembered */ }
-});
 
 function bRowHTML(it, note, alert) {
   const flag = it.prioDomain ? "domain" : it.prioSquad ? "squad" : "";
   const title = it.link ? `<a href="${escAttr(it.link)}" target="_blank" rel="noopener">${escapeHTML(it.title)}</a>` : escapeHTML(it.title);
-  return `<div class="b-row" role="button" tabindex="0" data-key="${escAttr(it.key)}" title="Show on the board">
+  return `<div class="b-row" role="button" tabindex="0" data-key="${escAttr(it.key)}" title="See the details">
     <div class="b-row-head"><span>${title}</span>${flag ? flagIconHTML(flag) : ""}</div>
     <div class="b-row-meta">${statusTagHTML(it.status)}<span>${escapeHTML(laneOf(it).team)}</span>${note ? `<span class="b-note${alert ? " alert" : ""}">${escapeHTML(note)}</span>` : ""}</div>
   </div>`;
@@ -2733,14 +2820,11 @@ function bListHTML(key, items, noteFn, alert) {
 }
 
 function renderBrief() {
-  briefEl.classList.add("visible");
   const period = periodInfo();
   const pk = `${currentView}|${currentYear}|${currentQuarter}`;
   if (pk !== brief.periodKey) { brief.periodKey = pk; brief.more.clear(); }
   const items = periodItems();
   const nf = activeFilterCount();
-  document.getElementById("briefHint").textContent =
-    `${period.label} · ${periodRangeText(period)}${nf ? ` · ${nf} filter${nf > 1 ? "s" : ""} active` : ""}`;
   if (!items.length) {
     briefBody.innerHTML = `<div class="m-empty small">${searchQuery ? "No topic matches this search" : "Nothing planned"} in ${escapeHTML(period.label)}${nf ? " with the current filters" : ""}.</div>`;
     return;
@@ -2750,7 +2834,7 @@ function renderBrief() {
   const c = familyCounts(items);
   const top = `<div class="brief-top">
     <div class="m-tile"><div class="v">${golives.length}</div><div class="l">Go-lives planned in ${escapeHTML(period.label)}</div></div>
-    <div class="m-tile${hideUnflagged ? " on" : ""}" role="button" tabindex="0" data-act="flagged" title="${hideUnflagged ? "Show all topics again" : "Show only the flagged topics"}"><div class="v">${flagged.length}</div><div class="l">Priority topics${hideUnflagged ? " · only these shown" : ""}</div></div>
+    <div class="m-tile" role="button" tabindex="0" data-dgoto="prio" title="Open the Priorities screen"><div class="v">${flagged.length}</div><div class="l">Priority topics ›</div></div>
     <div class="m-tile${attention.length ? " alert" : ""}"><div class="v">${attention.length}</div><div class="l">Need attention</div></div>
     <div class="brief-status"><h3>Status</h3>${statusBarHTML(items)}
       <div class="m-legend">${FAMILIES.filter((f) => c[f.id]).map((f) => `<span><i class="fam-${f.id}"></i>${f.label} <b>${c[f.id]}</b></span>`).join("")}</div></div>
@@ -2763,47 +2847,284 @@ function renderBrief() {
     ${attention.length ? bListHTML("attention", attention, (it) => attentionReason(it, today), true) : `<div class="m-empty small">Nothing late: dates and statuses are consistent.</div>`}</div>`;
   const domRows = sortedDomains(items).map((d) => {
     const list = items.filter((it) => laneOf(it).domain === d);
-    return `<div class="m-dom-row" role="button" tabindex="0" data-goto-domain="${escAttr(d)}" title="Show on the board"><span>${escapeHTML(d)}</span>${statusBarHTML(list)}<b>${list.length}</b><span class="chev">›</span></div>`;
+    return `<div class="m-dom-row" role="button" tabindex="0" data-goto-domain="${escAttr(d)}" title="Open on the Roadmap screen"><span>${escapeHTML(d)}</span>${statusBarHTML(list)}<b>${list.length}</b><span class="chev">›</span></div>`;
   }).join("");
   const domCol = `<div class="brief-col"><h3>By domain</h3>${domRows}</div>`;
 
   briefBody.innerHTML = top + `<div class="brief-cols">${nextCol}${attCol}${domCol}</div>`;
 }
 
-// Scrolls the board to an element, below the sticky column headers
+// Scrolls the board to an element, below the desktop header and the sticky column headers
 function scrollBoardTo(el, smooth = true) {
   const head = boardEl.querySelector(".lane-colhead");
-  const y = el.getBoundingClientRect().top + window.scrollY - (head ? head.offsetHeight : 0) - 16;
+  const y = el.getBoundingClientRect().top + window.scrollY - (head ? head.offsetHeight : 0) - dHead.offsetHeight - 16;
   window.scrollTo({ top: Math.max(0, y), behavior: smooth ? "smooth" : "auto" });
 }
-function showOnBoard(key) {
-  const find = () => boardEl.querySelector(`.item-line[data-key="${CSS.escape(key)}"]`);
-  let line = find();
-  // Quarter view: a topic with no date in the quarter only appears in the "Not detailed planned" column
-  if (!line && currentView === "quarter" && !showNotDetailed) { document.getElementById("ndCheck").click(); line = find(); }
-  if (!line) return;
-  scrollBoardTo(line);
-  line.classList.remove("flash");
-  void line.offsetWidth; // restarts the animation
-  line.classList.add("flash");
+function showDomainOnBoard(domain) {
+  setDesktopTab("roadmap");
+  const band = [...boardEl.querySelectorAll(".lane-domain")].find((b) => b.textContent === domain);
+  if (band) scrollBoardTo(band, false);
 }
 
 briefBody.addEventListener("click", (e) => {
-  if (e.target.closest("a")) return; // the title opens JIRA
-  const t = e.target.closest("[data-key],[data-goto-domain],[data-more],[data-act]");
-  if (!t) return;
-  const d = t.dataset;
-  if (d.key) showOnBoard(d.key);
-  else if (d.gotoDomain != null) {
-    const band = [...boardEl.querySelectorAll(".lane-domain")].find((b) => b.textContent === d.gotoDomain);
-    if (band) scrollBoardTo(band);
+  const t = e.target.closest("[data-goto-domain],[data-more],[data-dgoto]");
+  if (t) {
+    const ds = t.dataset;
+    if (ds.gotoDomain != null) showDomainOnBoard(ds.gotoDomain);
+    else if (ds.more) { brief.more.add(ds.more); renderDesktop(); }
+    else if (ds.dgoto) setDesktopTab(ds.dgoto);
+    return;
   }
-  else if (d.more) { brief.more.add(d.more); renderBrief(); }
-  else if (d.act === "flagged") document.getElementById("flaggedOnly").click();
+  const key = topicKeyFromClick(e);
+  if (key) openDetail(key);
 });
 briefBody.addEventListener("keydown", (e) => {
   if ((e.key === "Enter" || e.key === " ") && e.target.matches('[role="button"]')) { e.preventDefault(); e.target.click(); }
 });
+
+// ---------------------------------------------------------------------
+// DESKTOP SHELL — icon rail on the left with the phone's tabs: three screens
+// (Brief, Roadmap, Priorities) and panels opened on demand (Filters, Data,
+// topic details). Period, search and filters are shared by every screen and
+// recalled in the header. Only the last screen opened is kept in the browser
+// (localStorage); #brief, #roadmap and #priorities open a screen directly.
+// ---------------------------------------------------------------------
+const D_TAB_STORE = "edr.desktop.tab";
+const D_TABS = ["brief", "roadmap", "prio"];
+const D_TAB_HASH = { brief: "brief", roadmap: "roadmap", prio: "priorities" };
+const D_TAB_TITLE = { brief: "Brief", roadmap: "Roadmap", prio: "Priorities" };
+const desk = { tab: "brief", panel: null, detailKey: null };
+{
+  const fromHash = D_TABS.find((t) => "#" + D_TAB_HASH[t] === location.hash);
+  let stored = null;
+  try { stored = localStorage.getItem(D_TAB_STORE); } catch (e) { /* storage blocked: Brief */ }
+  desk.tab = fromHash || (D_TABS.includes(stored) ? stored : "brief"); // Brief is the arrival screen
+  document.body.dataset.dtab = desk.tab;
+}
+
+const dRail = document.getElementById("dRail");
+const dHead = document.getElementById("dHead");
+const dBackdrop = document.getElementById("dBackdrop");
+const dDetail = document.getElementById("dDetail");
+const prioScreen = document.getElementById("prioScreen");
+const D_PANELS = { filters: document.getElementById("toolbar"), data: document.getElementById("dataPanel") };
+
+// The board's column headers stick right below the header, whatever its height
+new ResizeObserver(() => document.documentElement.style.setProperty("--dhead-h", dHead.offsetHeight + "px")).observe(dHead);
+
+function setDesktopTab(tab) {
+  if (!D_TABS.includes(tab)) return;
+  desk.tab = tab;
+  document.body.dataset.dtab = tab;
+  try { localStorage.setItem(D_TAB_STORE, tab); } catch (e) { /* storage blocked: screen not remembered */ }
+  try { history.replaceState(history.state, "", "#" + D_TAB_HASH[tab]); } catch (e) { /* file:// on some browsers */ }
+  if (allItems.length) render();
+  window.scrollTo(0, 0);
+}
+
+function renderDesktop() {
+  const period = periodInfo();
+  const items = periodItems();
+  renderBrief();
+  renderPrioScreen(items, period);
+  renderDesktopHead(items, period);
+  renderRail();
+  const n = items.length;
+  document.getElementById("dShowTopics").textContent = `Show ${n} topic${n === 1 ? "" : "s"}`;
+  document.getElementById("dResetFilters").style.visibility = mFilterCount() ? "visible" : "hidden";
+  if (desk.detailKey) renderDetailPanel();
+  markSelected();
+}
+
+function renderRail() {
+  dRail.querySelectorAll("[data-dtab]").forEach((b) => {
+    const on = b.dataset.dtab === desk.tab;
+    b.classList.toggle("on", on);
+    if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
+  dRail.querySelectorAll("[data-drail]").forEach((b) => {
+    const open = b.dataset.drail === desk.panel;
+    b.classList.toggle("open", open);
+    b.setAttribute("aria-expanded", String(open));
+  });
+  const nf = allItems.length ? mFilterCount() : 0;
+  const badge = document.getElementById("dFilterBadge");
+  badge.textContent = nf;
+  badge.classList.toggle("on", nf > 0);
+}
+
+// Header: screen title, period, one chip per active filter (✕ removes it), key figures on the Roadmap
+function renderDesktopHead(items, period) {
+  document.getElementById("dTitle").textContent = D_TAB_TITLE[desk.tab];
+  document.getElementById("dRange").textContent = periodRangeText(period);
+  document.getElementById("dPeriodLabel").textContent = period.label;
+  const steps = mPeriodSteps(), i = mPeriodIndex(steps);
+  document.getElementById("dPrev").disabled = i <= 0;
+  document.getElementById("dNext").disabled = i === -1 || i >= steps.length - 1;
+
+  const chips = FILTER_KEYS.filter((k) => filterTotal[k] && filterState[k].size !== filterTotal[k]).map((k) =>
+    `<span class="d-chip">${FILTER_LABELS[k]}: ${escapeHTML(filterSummary(k))}<button type="button" data-chip="${k}" aria-label="Remove the ${FILTER_LABELS[k]} filter" title="Remove this filter">✕</button></span>`);
+  if (hideUnflagged) chips.push(`<span class="d-chip">Flagged topics only<button type="button" data-chip="flagged" aria-label="Show the unflagged topics again" title="Remove this filter">✕</button></span>`);
+  if (chips.length >= 2) chips.push(`<button type="button" class="link-btn d-chip-reset" data-chip="reset">Reset</button>`);
+  document.getElementById("dChips").innerHTML = chips.join("");
+
+  const kpis = document.getElementById("dKpis");
+  if (desk.tab === "roadmap" && items.length) {
+    const { golives, flagged, attention } = briefFigures(items, period);
+    kpis.innerHTML = `<button type="button" data-dgoto="brief" title="Open the Brief"><b>${golives.length}</b> go-live${golives.length === 1 ? "" : "s"} · <b>${flagged.length}</b> priority · <span class="${attention.length ? "alert" : ""}"><b>${attention.length}</b> need attention</span> ›</button>`;
+  } else kpis.innerHTML = "";
+}
+document.getElementById("dChips").addEventListener("click", (e) => {
+  const k = e.target.closest("[data-chip]")?.dataset.chip;
+  if (!k) return;
+  if (k === "reset") resetFilters();
+  else if (k === "flagged") document.getElementById("flaggedOnly").click();
+  else filterContainer(k).querySelector('[data-action="all"]').click();
+});
+document.getElementById("dKpis").addEventListener("click", (e) => { if (e.target.closest("[data-dgoto]")) setDesktopTab("brief"); });
+document.getElementById("dPrev").addEventListener("click", () => mStep(-1));
+document.getElementById("dNext").addEventListener("click", () => mStep(1));
+
+// ---- Priorities screen: the flagged topics of the period, Prio Domain first ----
+function renderPrioScreen(items, period) {
+  const dom = sortByGoLive(items.filter((it) => it.prioDomain));
+  const squad = sortByGoLive(items.filter((it) => it.prioSquad && !it.prioDomain));
+  if (!dom.length && !squad.length) {
+    prioScreen.innerHTML = `<div class="m-empty">No priority topic in ${escapeHTML(period.label)}${activeFilterCount() ? " with the current filters" : ""}.<br>Open a topic to flag it as Prio Squad or Prio Domain.</div>`;
+    return;
+  }
+  const today = todayStart();
+  const card = (it) => {
+    const why = attentionReason(it, today);
+    return mCardHTML(it, { note: why || (it.golive ? `Go Live ${fmtDateShort(it.golive)} · ${relDays(it.golive)}` : ""), alert: !!why });
+  };
+  const col = (title, kind, list) => `<section class="prio-col"><h3><span>${flagIconHTML(kind)}${title}</span><b>${list.length}</b></h3>
+    ${list.length ? `<div class="prio-grid">${list.map(card).join("")}</div>` : `<div class="m-empty small">No ${title} topic in this period.</div>`}</section>`;
+  prioScreen.innerHTML = `<div class="prio-cols">${col("Prio Domain", "domain", dom)}${col("Prio Squad", "squad", squad)}</div>
+    <p class="prio-note">Flags last for this session only: not saved, not sent to JIRA. Flag a topic from the board or from its details.</p>`;
+}
+
+// ---- Side panels (Filters, Data): one at a time, over the current screen ----
+function openPanel(name) {
+  closePanels();
+  desk.panel = name;
+  D_PANELS[name].classList.add("open");
+  dBackdrop.classList.add("on");
+  renderRail();
+}
+function closePanels() {
+  if (!desk.panel) return;
+  D_PANELS[desk.panel].classList.remove("open");
+  desk.panel = null;
+  dBackdrop.classList.remove("on");
+  document.querySelectorAll(".ms-panel.open").forEach((p) => p.classList.remove("open"));
+  renderRail();
+}
+dBackdrop.addEventListener("click", closePanels);
+Object.values(D_PANELS).forEach((p) => p.addEventListener("click", (e) => { if (e.target.closest("[data-dclose]")) closePanels(); }));
+document.getElementById("dResetFilters").addEventListener("click", resetFilters);
+
+dRail.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-dtab],[data-drail]");
+  if (!b) return;
+  if (!allItems.length) { if (b.dataset.drail === "data") fileInput.click(); return; } // nothing to show yet
+  if (b.dataset.dtab) { closePanels(); setDesktopTab(b.dataset.dtab); return; }
+  if (desk.panel === b.dataset.drail) closePanels(); else openPanel(b.dataset.drail);
+});
+dRail.querySelectorAll("[data-needs-data]").forEach((b) => b.addEventListener("mouseenter", () => {
+  b.dataset.tip = b.dataset.tip || b.title;
+  b.title = allItems.length ? b.dataset.tip : "Load a JIRA export first";
+}));
+
+// ---- Topic details: right-hand panel, opened from any screen ----
+// A click on a title opens the details; Ctrl/Cmd/Shift-click still opens JIRA in a new tab.
+function topicKeyFromClick(e) {
+  const a = e.target.closest("a");
+  if (a && (e.ctrlKey || e.metaKey || e.shiftKey)) return null;
+  const t = e.target.closest("[data-key]");
+  if (!t || t.classList.contains("flag-btn")) return null;
+  if (a) e.preventDefault();
+  return t.dataset.key;
+}
+const screenEl = () => (desk.tab === "brief" ? briefEl : desk.tab === "roadmap" ? boardEl : prioScreen);
+// Topics of the current screen, in reading order (for Previous / Next)
+const screenKeys = () => [...new Set([...screenEl().querySelectorAll(".item-line[data-key], .b-row[data-key], .m-card[data-key]")].map((el) => el.dataset.key))];
+
+function openDetail(key) {
+  desk.detailKey = key;
+  renderDetailPanel();
+  dDetail.classList.add("open");
+  markSelected();
+}
+function closeDetail() {
+  if (!desk.detailKey) return;
+  desk.detailKey = null;
+  dDetail.classList.remove("open");
+  markSelected();
+}
+function renderDetailPanel() {
+  const it = allItems.find((x) => x.key === desk.detailKey);
+  if (!it) return closeDetail();
+  const keys = screenKeys(), i = keys.indexOf(it.key);
+  dDetail.innerHTML = topicDetailHTML(it) + `<div class="d-detail-nav">
+    <button type="button" class="d-nav-btn" data-dnav="-1"${i <= 0 ? " disabled" : ""}>‹ Previous</button>
+    <span>${i === -1 ? "" : `${i + 1} / ${keys.length}`}</span>
+    <button type="button" class="d-nav-btn" data-dnav="1"${i === -1 || i >= keys.length - 1 ? " disabled" : ""}>Next ›</button></div>`;
+}
+function stepDetail(delta) {
+  const keys = screenKeys(), i = keys.indexOf(desk.detailKey);
+  if (i === -1 || !keys[i + delta]) return;
+  openDetail(keys[i + delta]);
+  screenEl().querySelector(".d-sel")?.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+function markSelected() {
+  document.querySelectorAll(".d-sel").forEach((el) => el.classList.remove("d-sel"));
+  if (!desk.detailKey || isMobile()) return;
+  screenEl().querySelectorAll(`[data-key="${CSS.escape(desk.detailKey)}"]:not(.flag-btn)`).forEach((el) => el.classList.add("d-sel"));
+}
+dDetail.addEventListener("click", (e) => {
+  if (e.target.closest("[data-close]")) closeDetail();
+  const nav = e.target.closest("[data-dnav]");
+  if (nav) stepDetail(Number(nav.dataset.dnav));
+});
+dDetail.addEventListener("change", (e) => {
+  const cb = e.target.closest("input[data-prop]");
+  const it = allItems.find((x) => x.key === desk.detailKey);
+  if (!cb || !it) return;
+  it[cb.dataset.prop] = cb.checked;
+  render();
+});
+[boardEl, prioScreen].forEach((el) => el.addEventListener("click", (e) => {
+  if (isMobile()) return;
+  const key = topicKeyFromClick(e);
+  if (key) openDetail(key);
+}));
+prioScreen.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches('[role="button"]')) { e.preventDefault(); e.target.click(); }
+});
+
+// ---- Keyboard: 1 2 3 screens, F filters, / search, ? guide, ↑ ↓ previous / next topic, Esc closes ----
+document.addEventListener("keydown", (e) => {
+  if (tour || isMobile() || !allItems.length) return;
+  if (e.key === "Escape") { if (desk.panel) closePanels(); else closeDetail(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey || e.target.closest("input, textarea, select")) return;
+  const tab = { "1": "brief", "2": "roadmap", "3": "prio" }[e.key];
+  if (tab) { closePanels(); setDesktopTab(tab); }
+  else if (e.key === "f" || e.key === "F") { if (desk.panel === "filters") closePanels(); else openPanel("filters"); }
+  else if (e.key === "/") { e.preventDefault(); closePanels(); document.getElementById("searchInput").focus(); }
+  else if (e.key === "?") startTour("app");
+  else if (desk.detailKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) { e.preventDefault(); stepDetail(e.key === "ArrowDown" ? 1 : -1); }
+});
+
+// A CSV dropped anywhere on the page is imported (desktop; the phone has no drag and drop)
+document.addEventListener("dragover", (e) => { if (!isMobile() && e.dataTransfer && [...e.dataTransfer.types].includes("Files")) e.preventDefault(); });
+document.addEventListener("drop", (e) => {
+  if (isMobile() || !e.dataTransfer || !e.dataTransfer.files.length) return;
+  e.preventDefault();
+  handleFiles([...e.dataTransfer.files]);
+});
+
+mobileMQ.addEventListener("change", () => { closePanels(); closeDetail(); });
 
 // ---------------------------------------------------------------------
 // SAMPLE DATA — fictional topics, built as a JIRA-like CSV and run through
@@ -2883,27 +3204,30 @@ const TOURS = {
       body: "Load fictional sample data to explore the tool right away. The tour then continues with the main features.",
       cta: { label: "Load sample data", run: () => document.getElementById("sampleBtn").click() } },
   ],
+  // Desktop steps; "show" opens that screen first (their targets only exist on a computer)
   app: [
+    { target: "#dRail .d-rail-tabs", title: "Three screens",
+      body: "<strong>Brief</strong>: the key figures of the period. <strong>Roadmap</strong>: the full board. <strong>Priorities</strong>: the flagged topics. The same tabs as on a phone. Shortcuts: 1, 2, 3." },
+    { target: "#brief", show: "brief", title: "The brief of the period",
+      body: "Go-lives planned, priority topics and topics that <strong>need attention</strong> (Go Live or UAT date passed while the status has not moved on). Click a topic to see its details, or a domain to open it on the Roadmap." },
+    { target: "#dPeriod", title: "Pick the period",
+      body: "<strong>Year</strong> shows one column per quarter, <strong>Quarter</strong> one column per month. Use the arrows to move from one period to the next. Topics are placed according to their PI field." },
     { target: "#searchInput", title: "Search a topic",
-      body: "Type a few words of a title, or a JIRA key, to find a topic." },
-    { target: "#filterRow", title: "Filter the topics",
-      body: "Narrow down by Domain, Team, Zone, Platform, Status or Flag. A filter in use is highlighted, and options with no matching topic are greyed out." },
-    { target: () => document.querySelector("#board .flag-btn")?.closest(".item-line"), title: "Flag your priorities",
+      body: "Type a few words of a title, or a JIRA key, to find a topic. Shortcut: /" },
+    { target: '#dRail [data-drail="filters"]', title: "Filter the topics",
+      body: "Narrow down by Domain, Team, Zone, Platform, Status or Flag, or keep only the flagged topics. Filters in use appear as chips at the top of every screen: click ✕ on a chip to remove it. Shortcut: F" },
+    { target: "#board", show: "roadmap", title: "Read the roadmap",
+      body: "Topics are grouped by platform, domain and team, then by status. Each topic shows a mini timeline: Start build, UAT start and Go Live (star). Click a topic to see its details and open it in JIRA." },
+    { target: () => document.querySelector("#board .flag-btn")?.closest(".item-line"), show: "roadmap", title: "Flag your priorities",
       body: "Click the flag on a topic to mark it <strong>Prio Squad</strong> (blue) or <strong>Prio Domain</strong> (violet). Flags come from the JIRA labels; changes made here are not saved and not sent to JIRA." },
-    { target: () => document.getElementById("flaggedOnly").closest("label"), title: "Focus on priorities",
-      body: "Tick this box to keep only flagged topics, on screen and in the exports." },
-    { target: "#viewToggle", title: "Year or Quarter",
-      body: "<strong>Year</strong> shows one column per quarter. <strong>Quarter</strong> shows one column per month, with an option to show topics that have no planned dates yet (<em>Not detailed planned</em>)." },
-    { target: "#yearPills", title: "Pick the period",
-      body: "Choose the year to display (and the quarter, in Quarter view). Topics are placed according to their PI field." },
-    { target: "#brief", title: "The brief of the period",
-      body: "Key figures for the period and filters displayed: go-lives planned, priority topics and topics that <strong>need attention</strong> (Go Live or UAT date passed while the status has not moved on). Click a topic or a domain to find it on the board." },
-    { target: "#board", title: "Read the roadmap",
-      body: "Topics are grouped by platform, domain and team, then by status. Each topic shows a mini timeline: Build start, UAT start and Go Live (star). Click a title to open it in JIRA." },
+    { target: "#prioScreen", show: "prio", title: "Your priorities",
+      body: "All the flagged topics of the period: Prio Domain first, then Prio Squad." },
+    { target: '#dRail [data-drail="data"]', title: "Your data",
+      body: "See which file is loaded, import a newer JIRA export or try the sample data. You can also drop a CSV anywhere on the page." },
     { target: "#exportBtn", title: "Export",
       body: "Download as CSV, a PowerPoint timeline or a Word release note. Exports follow your filters; PowerPoint and Word also follow the period displayed." },
-    { target: "#guideBtn", title: "Replay the tour",
-      body: "Click here at any time to see this tour again." },
+    { target: "#dGuideBtn", title: "Replay the tour",
+      body: "Click here at any time to see this tour again. Shortcut: ?" },
     // Phone steps (their targets only exist on a phone; desktop steps above are skipped there)
     { target: "#mTop", title: "Search and pick the period",
       body: "Type a few words or a JIRA key to find a topic. Below, switch between <strong>Year</strong> and <strong>Quarter</strong> and use the arrows to move from one period to the next." },
@@ -2921,6 +3245,8 @@ let tour = null; // { name, steps, i, els }
 function startTour(name) {
   endTour(false);
   closePrioMenu();
+  closePanels();
+  closeDetail();
   exportMenu.classList.remove("open");
   document.querySelectorAll(".ms-panel.open").forEach((p) => p.classList.remove("open"));
 
@@ -2937,6 +3263,7 @@ function startTour(name) {
   blocker.addEventListener("dragover", (e) => e.preventDefault());
   blocker.addEventListener("drop", (e) => {
     e.preventDefault();
+    e.stopPropagation(); // not imported a second time by the page-wide drop
     if (e.dataTransfer.files.length) handleFiles([...e.dataTransfer.files]);
   });
   tip.addEventListener("click", (e) => {
@@ -2949,9 +3276,10 @@ function startTour(name) {
   });
   document.body.append(blocker, spot, tip);
 
-  // drop steps whose target is not on the page (e.g. no topic in the year shown)
-  const steps = TOURS[name].filter((s) => !s.target || tourTarget(s));
-  tour = { name, steps, i: 0, els: { blocker, spot, tip } };
+  // drop steps whose target is not on the page (e.g. no topic in the year shown);
+  // a desktop step that opens another screen first is checked when it shows
+  const steps = TOURS[name].filter((s) => !s.target || (s.show && !isMobile() && allItems.length) || tourTarget(s));
+  tour = { name, steps, i: 0, els: { blocker, spot, tip }, tab: desk.tab };
   showTourStep();
 }
 
@@ -2973,6 +3301,7 @@ function showTourStep() {
   const { steps, i, els } = tour;
   const step = steps[i];
   const last = i === steps.length - 1;
+  if (step.show && !isMobile() && desk.tab !== step.show) setDesktopTab(step.show);
   els.tip.innerHTML = `
     <div class="tt-step">${tour.name === "intro" ? "Getting started" : "Main features"} · ${i + 1}/${steps.length}</div>
     <h2>${step.title}</h2>
@@ -3022,7 +3351,9 @@ function endTour(markSeen) {
   if (!tour) return;
   if (markSeen) markTourSeen(tour.name);
   Object.values(tour.els).forEach((el) => el.remove());
+  const backTo = tour.tab;
   tour = null;
+  if (allItems.length && !isMobile() && desk.tab !== backTo) setDesktopTab(backTo); // back to the screen the tour started from
 }
 
 window.addEventListener("resize", positionTour);
@@ -3034,10 +3365,10 @@ document.addEventListener("keydown", (e) => {
   else if (e.key === "ArrowLeft") tourGo(-1);
 });
 
-document.getElementById("guideBtn").addEventListener("click", (e) => {
+["guideBtn", "dGuideBtn"].forEach((id) => document.getElementById(id).addEventListener("click", (e) => {
   e.stopPropagation();
   startTour(allItems.length ? "app" : "intro");
-});
+}));
 
 // First data on the board (CSV or sample): the intro is over, show the features once.
 function onDataLoaded() {
